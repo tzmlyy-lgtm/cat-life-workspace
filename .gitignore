@@ -1,0 +1,24 @@
+# ===== WorkBuddy 工作区 =====
+# 含个人备忘、工作日志与本地工具，刻意不入库（隐私 + 体积）
+.workbuddy/
+
+# ===== 中间素材（未被任何页面引用，约 30MB）=====
+# 原始生成图与去底图，属于制作过程中的 working files。
+# 如果想把它们也纳入版本管理，把下面两行注释掉即可。
+cat-assets/
+cat-images-transparent/
+
+# ===== 本地归档（瘦身时移出的未引用原图，仅存本地）=====
+_archive/
+
+# ===== 系统 / 编辑器 =====
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+
+# ===== 临时产物 =====
+*.tmp
+*.log
+*~$*
+deploy-site/_*

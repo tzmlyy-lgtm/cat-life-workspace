@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>喵星驻地球办事处 · 使用介绍</title>
+<style>
+  :root{
+    --cream:#f5f0e8; --cream2:#efe7d8; --card:#fffdf8;
+    --orange:#c89060; --orange-deep:#b0773f; --sage:#3B6CB7; --sage-deep:#2C5288;
+    --c-model:#3B6CB7; --c-product:#7BA05B; --c-industry:#E0A33D; --c-paper:#C25B4E; --c-warm:#8C8475;
+    --ink:#4a4234; --ink2:#7a6f5c; --line:#e6dcc8; --shadow:0 8px 22px rgba(150,120,80,.13);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%, #fbeedd 0%, transparent 60%),
+               radial-gradient(900px 500px at 0% 0%, #e7eef6 0%, transparent 55%),
+               var(--cream);
+    color:var(--ink); line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+  /* HERO */
+  .hero{position:relative;overflow:hidden;padding:64px 20px 56px;text-align:center}
+  .hero h1{font-size:clamp(30px,6vw,52px);letter-spacing:2px;color:var(--ink);font-weight:800}
+  .hero h1 .paw{color:var(--orange)}
+  .hero .sub{margin-top:14px;font-size:clamp(15px,2.4vw,20px);color:var(--ink2)}
+  .hero .tags{margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .tag{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 16px;font-size:13.5px;color:var(--ink2);box-shadow:var(--shadow)}
+  .hero-cat{font-size:84px;display:inline-block;margin-bottom:6px;animation:float 3.6s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+  .blob{position:absolute;border-radius:50%;filter:blur(2px);opacity:.5;z-index:0}
+  .b1{width:160px;height:160px;background:#f6d9b8;top:-40px;right:8%}
+  .b2{width:120px;height:120px;background:#cfe0c4;bottom:-30px;left:6%}
+  .section{margin-top:54px;position:relative;z-index:1}
+  .sec-title{display:flex;align-items:center;gap:12px;font-size:24px;font-weight:800;color:var(--ink);margin-bottom:6px}
+  .sec-title .dot{width:14px;height:14px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 5px rgba(200,144,96,.18)}
+  .sec-desc{color:var(--ink2);font-size:14.5px;margin-bottom:22px;padding-left:26px}
+  /* 亮点卡片 */
+  .grid{display:grid;gap:16px}
+  .highlights{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .hl{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);transition:.25s}
+  .hl:hover{transform:translateY(-5px);box-shadow:0 14px 30px rgba(150,120,80,.18)}
+  .hl .ic{font-size:30px}
+  .hl h3{font-size:17px;margin:10px 0 6px;color:var(--ink)}
+  .hl p{font-size:13.8px;color:var(--ink2)}
+  /* 模块网格 */
+  .modules{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .mod{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:flex-start;transition:.2s}
+  .mod:hover{transform:translateY(-3px);border-color:var(--orange)}
+  .mod .emoji{font-size:26px;flex-shrink:0;line-height:1.1}
+  .mod .mt{font-weight:700;font-size:15px;color:var(--ink)}
+  .mod .md{font-size:12.6px;color:var(--ink2);margin-top:2px}
+  /* 上手步骤 */
+  .steps{counter-reset:s;display:grid;gap:14px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px 18px 64px;position:relative;box-shadow:var(--shadow)}
+  .step::before{counter-increment:s;content:counter(s);position:absolute;left:18px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange-deep));color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .step h4{font-size:15.5px;color:var(--ink);margin-bottom:3px}
+  .step p{font-size:13.6px;color:var(--ink2)}
+  .step code{background:var(--cream2);border:1px solid var(--line);border-radius:7px;padding:1px 7px;font-size:12.5px;color:var(--orange-deep)}
+  /* 获取方式 */
+  .get{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+  .getc{background:linear-gradient(135deg,#fffdf8,#fbf4e9);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+  .getc h3{font-size:16px;color:var(--orange-deep);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .getc p{font-size:13.6px;color:var(--ink2)}
+  .getc .pill{display:inline-block;margin-top:10px;background:var(--sage);color:#fff;border-radius:999px;padding:5px 13px;font-size:12.5px}
+  .note{margin-top:24px;background:#fff8ef;border:1px dashed var(--orange);border-radius:14px;padding:16px 18px;font-size:13.4px;color:var(--ink2)}
+  .note b{color:var(--orange-deep)}
+  footer{text-align:center;margin-top:56px;color:var(--ink2);font-size:13px}
+  footer .cat{font-size:22px}
+</style>
+</head>
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <header class="hero">
+    <div class="hero-cat">🐱</div>
+    <h1><span class="paw">🐾</span> 喵星驻地球办事处</h1>
+    <p class="sub">你的泛生活一站式工作台 · 一个文件，搞定全部日常</p>
+    <div class="tags">
+      <span class="tag">📦 单文件零依赖</span>
+      <span class="tag">🐱 漫画猫咪陪伴</span>
+      <span class="tag">🔧 可拖拽自定义</span>
+      <span class="tag">🤖 AI 一日总结</span>
+      <span class="tag">📱 全端自适应</span>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- 核心亮点 -->
+    <section class="section">
+      <div class="sec-title"><span class="dot"></span>核心亮点</div>
+      <p class="sec-desc">不只是又一个待办清单，而是一整套为「真实生活」设计的温柔工具。</p>
+      <div class="grid highlights">
+        <div class="hl"><div class="ic">📦</div><h3>单文件零依赖</h3><p>整套工作台就是一个 HTML 文件，双击即用。不联网、不注册、不上传，打开就能用。</p></div>
+        <div class="hl"><div class="ic">🐱</div><h3>漫画猫咪陪伴</h3><p>15 张手绘透明猫咪散落各角落，Hero、悬浮、图标一应俱全，记录日常也能被治愈。</p></div>
+        <div class="hl"><div class="ic">🔧</div><h3>完全可自定义</h3><p>首页功能卡片、左侧导航都能长按拖拽排序；随时「恢复默认」，按你的习惯重新排布。</p></div>
+        <div class="hl"><div class="ic">🤖</div><h3>AI 一日总结</h3><p>一键聚合你今天的日程、习惯、随手记、支出、目标进展，自动生成一段温暖的自然语言回顾。</p></div>
+        <div class="hl"><div class="ic">📊</div><h3>可视化数据</h3><p>习惯 30 天贴纸热力图、体重 BMI 折线、财务分类统计，进度一眼可见。</p></div>
+        <div class="hl"><div class="ic">🔒</div><h3>隐私本地存</h3><p>所有数据只存在你自己的浏览器本地（localStorage），不上云、不共享，安心记录。</p></div>
+      </div>
+    </section>
+
+    <!-- 功能模块 -->
+    <section class="section">
+      <div class="sec-title"><span class="dot"></span>功能模块</div>
+      <p class="sec-desc">16 个模块覆盖「计划—执行—回顾」完整闭环，想记什么都有地方放。</p>
+      <div class="grid modules">
+        <div class="mod"><div class="emoji">🏠</div><div><div class="mt">综合首页</div><div class="md">总览与快捷入口、今日概览、便利速记</div></div></div>
+        <div class="mod"><div class="emoji">🕐</div><div><div class="mt">今日要处理</div><div class="md">逾期 + 今日安排、快速习惯打卡</div></div></div>
+        <div class="mod"><div class="emoji">🐾</div><div><div class="mt">习惯健康</div><div class="md">打卡（计数/勾选/数值）· 30 天贴纸热力图</div></div></div>
+        <div class="mod"><div class="emoji">🏃</div><div><div class="mt">减脂健身</div><div class="md">体重 · BMI · 摄入/消耗/目标曲线</div></div></div>
+        <div class="mod"><div class="emoji">📅</div><div><div class="mt">日程统筹</div><div class="md">日历视图，事件增删改查</div></div></div>
+        <div class="mod"><div class="emoji">🛒</div><div><div class="mt">待买清单</div><div class="md">购物清单随手勾选</div></div></div>
+        <div class="mod"><div class="emoji">🎬</div><div><div class="mt">书影音</div><div class="md">书 / 电影 / 音乐收藏与评分</div></div></div>
+        <div class="mod"><div class="emoji">💬</div><div><div class="mt">碎碎念</div><div class="md">聊天式心情与风景记录</div></div></div>
+        <div class="mod"><div class="emoji">🎂</div><div><div class="mt">好友生日</div><div class="md">临近生日提醒</div></div></div>
+        <div class="mod"><div class="emoji">💰</div><div><div class="mt">财务记账</div><div class="md">收支流水 · 月度预算 · 分类统计</div></div></div>
+        <div class="mod"><div class="emoji">🍅</div><div><div class="mt">番茄钟</div><div class="md">25+5 专注计时与记录</div></div></div>
+        <div class="mod"><div class="emoji">⏰</div><div><div class="mt">时钟</div><div class="md">大字模拟时钟显示</div></div></div>
+        <div class="mod"><div class="emoji">💡</div><div><div class="mt">灵感记录</div><div class="md">随手捕捉想法便签</div></div></div>
+        <div class="mod"><div class="emoji">🎯</div><div><div class="mt">目标管理</div><div class="md">里程碑式目标追踪与分解</div></div></div>
+        <div class="mod"><div class="emoji">💪</div><div><div class="mt">健康管理</div><div class="md">运动 / 睡眠 / 饮食记录</div></div></div>
+        <div class="mod"><div class="emoji">⭐</div><div><div class="mt">心愿梦想</div><div class="md">心愿与梦想清单</div></div></div>
+      </div>
+    </section>
+
+    <!-- 快速上手 -->
+    <section class="section">
+      <div class="sec-title"><span class="dot"></span>拿到手怎么开始用</div>
+      <p class="sec-desc">三步打开，五步上手。无需教程视频，凭直觉就能用起来。</p>
+      <div class="steps">
+        <div class="step"><h4>拿到文件，双击打开</h4><p>拿到 <code>life-workspace.html</code> 后，用 Chrome / Edge / Safari 等现代浏览器直接打开即可，无需安装任何东西。</p></div>
+        <div class="step"><h4>进入综合首页，写下第一条</h4><p>打开默认就是综合首页。先在「便利填写」速记板里随手记点什么，或点任意模块开始记录——数据会自动保存。</p></div>
+        <div class="step"><h4>拖一拖，排成你的顺序</h4><p>首页功能卡片、左侧导航都能<strong>长按拖动</strong>重新排序；排乱了点「恢复默认顺序」一键还原。</p></div>
+        <div class="step"><h4>每晚用「一日总结」复盘</h4><p>在综合首页底部写今日完成 / 感恩 / 明日打算，再点 <code>✨ AI 智能总结</code>，自动生成一天的回顾，可一键复制。</p></div>
+        <div class="step"><h4>手机也能用</h4><p>把同一个 <code>.html</code> 文件发到手机，用手机浏览器打开，界面自动切换为底部 Tab 布局，随时随地记录。</p></div>
+      </div>
+      <div class="note">
+        <b>💡 关于数据安全：</b>所有记录只存在你打开它的那台设备的浏览器里（localStorage）。换电脑 / 清缓存数据会清空，建议对重要内容定期截图备份，或把整个 <code>.html</code> 文件连同使用习惯一起保存。需要跨设备同步，可使用配套的「学习目标管理台」在线版（数据存于云端资料库）。
+      </div>
+    </section>
+
+    <!-- 获取方式 -->
+    <section class="section">
+      <div class="sec-title"><span class="dot"></span>三种获取 / 使用方式</div>
+      <p class="sec-desc">同一套设计，三种形态，挑最顺手的用。</p>
+      <div class="get">
+        <div class="getc">
+          <h3>🌐 网页在线版</h3>
+          <p>已部署到云端，点开链接即用，电脑手机都能访问，适合随时打开。</p>
+          <span class="pill">免下载 · 即开即用</span>
+        </div>
+        <div class="getc">
+          <h3>💾 本地 HTML 文件</h3>
+          <p>把 <code>life-workspace.html</code> 存到任意位置，双击用浏览器打开，纯离线、最隐私。</p>
+          <span class="pill">离线 · 隐私优先</span>
+        </div>
+        <div class="getc">
+          <h3>📱 微信小程序版</h3>
+          <p>另有小程序工程 <code>cat-workspace-miniprogram</code>，用微信开发者工具导入目录即可预览运行。</p>
+          <span class="pill">原生小程序</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <div class="cat">🐱</div>
+    <p>喵星驻地球办事处 · 一个被猫咪承包的生活工作台</p>
+    <p style="margin-top:6px;opacity:.7">数据本地存储 · 单文件零依赖 · 可自由分享与自定义</p>
+  </footer>
+</body>
+</html>

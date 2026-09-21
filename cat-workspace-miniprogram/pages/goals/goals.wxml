@@ -1,0 +1,43 @@
+<view class="container">
+  <!-- 新增目标 -->
+  <view class="card">
+    <view class="card-title"><text>🎯</text><text>目标管理</text></view>
+    <input class="input-box" placeholder="目标名称…" value="{{newTitle}}" bindinput="onInput" style="margin-bottom:12rpx"/>
+    <input class="input-box" placeholder="截止日期（如 2026-12-20）" value="{{newDeadline}}" bindinput="onDeadline" style="margin-bottom:12rpx"/>
+    <button class="btn btn-primary" bindtap="addGoal" size="mini">+ 新建目标</button>
+  </view>
+
+  <!-- 目标列表 -->
+  <block wx:if="{{goals.length > 0}}">
+    <view wx:for="{{goals}}" wx:key="id" class="card fade-in">
+      <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8rpx">
+        <text style="font-size:30rpx;font-weight:600">{{item.title}}</text>
+        <text style="font-size:22rpx;color:#c89060">{{item.deadline||'无截止日'}}</text>
+      </view>
+
+      <!-- 里程碑 -->
+      <block wx:if="{{item.milestones && item.milestones.length > 0}}">
+        <view style="display:flex;gap:10rpx;flex-wrap:wrap;margin:12rpx 0">
+          <view wx:for="{{item.milestones}}" wx:for-item="ms" wx:key="*this"
+                class="tag" catchtap="toggleMs" data-gid="{{item.id}}" data-idx="{{index}}"
+                style="{{ms.done?'background:#8b9a7f;color:#fff;border-color:#8b9a7f':''}}">
+            {{ms.done?'✓ '}}{{ms.text}}
+          </view>
+        </view>
+        <!-- 进度条 -->
+        <view style="background:#f0ebe3;border-radius:8rpx;height:16rpx;overflow:hidden;margin-top:8rpx">
+          <view style="background:#c89060;height:100%;border-radius:8rpx;width:{{item.progress}}%;transition:width .3s"></view>
+        </view>
+        <text style="font-size:22rpx;color:#8a8074;display:block;margin-top:4rpx">进度 {{item.doneCount}}/{{item.totalCount}}</text>
+      </block>
+
+      <view style="margin-top:12rpx;display:flex;gap:12rpx">
+        <input class="input-box" placeholder="+ 添加里程碑…" value="{{item.newMs}}" bindinput="onMsInput" data-id="{{item.id}}" style="flex:1"/>
+        <button class="btn btn-small" catchtap="addMs" data-id="{{item.id}}" size="mini">添加</button>
+        <button class="btn btn-small" catchtap="delGoal" data-id="{{item.id}}" size="mini" style="color:#e2886b">删除</button>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="empty-state">还没有目标，去立个 flag 吧 🚩</view>
+</view>

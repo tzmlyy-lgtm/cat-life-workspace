@@ -1,0 +1,49 @@
+<view class="container">
+  <!-- 今日总结 -->
+  <view class="card">
+    <view class="card-title"><text>💡</text><text>一日总结</text></view>
+    <text style="font-size:22rpx;color:#8a8074;margin-bottom:16rpx;display:block">{{today}}</text>
+
+    <view class="tri-grid">
+      <view class="tri-col">
+        <text class="tri-label">✅ 今日完成</text>
+        <textarea class="textarea-box" style="min-height:140rpx" placeholder="今天搞定的事…" value="{{done}}" bindinput="onDone"></textarea>
+      </view>
+      <view class="tri-col">
+        <text class="tri-label">🌻 今日感恩</text>
+        <textarea class="textarea-box" style="min-height:140rpx" placeholder="值得感谢的人/事…" value="{{grate}}" bindinput="onGrate"></textarea>
+      </view>
+      <view class="tri-col">
+        <text class="tri-label">⏭ 明日打算</text>
+        <textarea class="textarea-box" style="min-height:140rpx" placeholder="明天想做的…" value="{{next}}" bindinput="onNext"></textarea>
+      </view>
+    </view>
+
+    <view style="display:flex;gap:12rpx;margin-top:16rpx;flex-wrap:wrap">
+      <button class="btn btn-primary" bindtap="save" size="mini">保存今日</button>
+      <button class="btn btn-ai" bindtap="aiSum" size="mini">✨ AI 归纳</button>
+    </view>
+
+    <!-- AI 结果 -->
+    <view class="ai-box" wx:if="{{aiText}}">
+      <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8rpx">
+        <text class="ai-badge">🤖 AI 智能归纳</text>
+        <button class="btn btn-small" bindtap="copyAi" size="mini">复制</button>
+      </view>
+      <text class="ai-text">{{aiText}}</text>
+    </view>
+  </view>
+
+  <!-- 历史记录 -->
+  <view class="card" wx:if="{{history.length > 0}}">
+    <view class="card-title"><text>📔</text><text>往日总结</text></view>
+    <view wx:for="{{history}}" wx:key="date" style="padding:14rpx 0;border-bottom:1rpx solid #e8dfd3">
+      <text style="font-size:24rpx;font-weight:700;color:#8b9a7f">{{item.date}}</text>
+      <block wx:if="{{item.done}}"><text style="font-size:24rpx;color:#8a8074;display:block;margin-top:4rpx">完成：{{item.done}}</text></block>
+      <block wx:if="{{item.grate}}"><text style="font-size:24rpx;color:#8a8074;display:block">感恩：{{item.grate}}</text></block>
+      <block wx:if="{{item.next}}"><text style="font-size:24rpx;color:#8a8074;display:block">明日：{{item.next}}</text></block>
+    </view>
+  </view>
+
+  <view wx:elif="{{history.length === 0 && !done && !grate && !next}}" class="empty-state">还没有往日总结，写完今天的就开始积累啦 🐱</view>
+</view>

@@ -1,0 +1,41 @@
+<view class="container">
+  <view class="card">
+    <view class="card-title"><text>🕐</text><text>今日要处理</text></view>
+    <text style="font-size:22rpx;color:#8a8074;margin-bottom:16rpx;display:block">逾期与今天该做的都会置顶展示</text>
+
+    <!-- 日程列表 -->
+    <block wx:if="{{items.length > 0}}">
+      <view wx:for="{{items}}" wx:key="id" class="task-item" style="display:flex;align-items:center;gap:16rpx;padding:16rpx 0;border-bottom:1rpx solid #e8dfd3">
+        <view class="checkbox {{item.done?'checked':''}}" bindtap="toggleTask" data-id="{{item.id}}">
+          <text wx:if="{{item.done}}">✓</text>
+        </view>
+        <view style="flex:1">
+          <text style="font-size:28rpx;{{item.done?'text-decoration:line-through;color:#8a8074':''}}">{{item.title}}</text>
+          <text style="font-size:22rpx;color:#c89060;margin-left:12rpx" wx:if="{{item.overdue}}">逾期</text>
+        </view>
+        <text style="font-size:22rpx;color:#8a8074">{{item.time}}</text>
+        <text class="btn btn-small" catchtap="delTask" data-id="{{item.id}}">删</text>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view wx:else class="empty-state">今天没有待办事项，清清爽爽 🐱</view>
+
+    <!-- 添加新任务 -->
+    <view style="margin-top:20rpx;display:flex;gap:12rpx">
+      <input class="input-box" placeholder="添加新日程…" value="{{newTitle}}" bindinput="onInput" style="flex:1" confirm-type="done" bindconfirm="addTask"/>
+      <button class="btn btn-primary" bindtap="addTask" size="mini">添加</button>
+    </view>
+  </view>
+
+  <!-- 快速习惯打卡 -->
+  <view class="card">
+    <view class="card-title"><text>✅</text><text>快速打卡</text></view>
+    <view style="display:flex;flex-wrap:wrap;gap:12rpx">
+      <view wx:for="{{habits}}" wx:key="id" class="tag" bindtap="quickCheckin" data-id="{{item.id}}"
+            style="{{item.checked ? 'background:#8b9a7f;color:#fff;border-color:#8b9a7f' : ''}}">
+        {{item.name}} {{item.mode==='count' ? (item.todayVal||0)+'/'+item.target : (item.checked?'☑':'☐')}}
+      </view>
+    </view>
+  </view>
+</view>

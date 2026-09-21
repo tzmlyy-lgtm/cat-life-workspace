@@ -1,0 +1,14 @@
+{
+  "title": "学习目标",
+  "properties": [
+    { "name": "名称", "config": { "text": "" } },
+    { "name": "单位", "config": { "text": "" } },
+    { "name": "总量", "config": { "number": 0 } },
+    { "name": "截止日", "config": { "date": "2024-09-01T00:00:00Z" } },
+    { "name": "配色", "config": { "text": "" } },
+    { "name": "障碍", "config": { "text": "" } },
+    { "name": "对策", "config": { "text": "" } },
+    { "name": "目标标识", "config": { "text": "" } },
+    { "name": "示例", "config": { "checkbox": false } }
+  ]
+}

@@ -1,0 +1,1 @@
+{"miniprogramRoot": "./", "projectname": "cat-workspace", "description": "喵星驻地球办事处 · 泛生活工作台", "appid": "touristappid", "setting": {"urlCheck": false, "es6": true, "enhance": true, "compileHotReLoad": false, "postcss": true, "minified": false, "newFeature": true, "autoAudits": false, "coverView": true}, "compileType": "miniprogram", "condition": {}}

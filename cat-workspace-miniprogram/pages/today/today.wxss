@@ -1,0 +1,5 @@
+.checkbox {
+  width: 40rpx;height:40rpx;border-radius:50%;border:2rpx solid #e8dfd3;display:flex;align-items:center;justify-content:center;font-size:24rpx;color:#fff;background:transparent;flex-shrink:0;
+}
+.checkbox.checked { background: #8b9a7f; border-color: #8b9a7f; }
+.task-item:last-child { border-bottom: none !important; }

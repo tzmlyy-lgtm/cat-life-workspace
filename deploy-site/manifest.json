@@ -1,0 +1,22 @@
+{
+  "id": "./",
+  "name": "喵星驻地球办事处 · 个人生活数据工作台",
+  "short_name": "喵星办事处",
+  "description": "日程、习惯、饮食、运动、书影音、理财、专注与实时资讯，数据都存在本地。",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FAFAFA",
+  "theme_color": "#FAFAFA",
+  "categories": ["productivity", "lifestyle"],
+  "icons": [
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "favicon-32.png", "sizes": "32x32", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/today/today",
+    "pages/habits/habits",
+    "pages/finance/finance",
+    "pages/goals/goals",
+    "pages/daily/daily"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#f5f0e8",
+    "navigationBarTitleText": "喵星驻地球办事处",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f0e8",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#8a8074",
+    "selectedColor": "#c89060",
+    "backgroundColor": "#fffdf8",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/coin.png",
+        "selectedIconPath": "images/star.png"
+      },
+      {
+        "pagePath": "pages/today/today",
+        "text": "今日",
+        "iconPath": "images/watch.png",
+        "selectedIconPath": "images/bulb.png"
+      },
+      {
+        "pagePath": "pages/habits/habits",
+        "text": "习惯",
+        "iconPath": "images/yoga.png",
+        "selectedIconPath": "images/flag.png"
+      },
+      {
+        "pagePath": "pages/daily/daily",
+        "text": "总结",
+        "iconPath": "images/thinking.png",
+        "selectedIconPath": "images/cat-heart-clean.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

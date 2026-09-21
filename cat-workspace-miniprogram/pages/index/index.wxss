@@ -1,0 +1,3 @@
+/* 首页特有样式 */
+.hero-img { border-radius: 24rpx; }
+.func-grid { margin-top: 8rpx; }

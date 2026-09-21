@@ -1,0 +1,125 @@
+<view class="container">
+  <!-- Hero -->
+  <view class="hero">
+    <image class="hero-img" src="/images/hero.png" mode="aspectFit"></image>
+    <view class="hero-text">
+      <text class="title">喵星驻地球办事处</text>
+      <text class="sub">所有功能一览 · 点击卡片快速跳转</text>
+    </view>
+  </view>
+
+  <!-- 今日概览（底部） -->
+  <view class="bottom-section">
+    <view class="bottom-title">📊 今日概览</view>
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-num">{{todoCount}}</text>
+        <text class="stat-lab">今日待办</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-num">¥{{expense}}</text>
+        <text class="stat-lab">本月支出</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-num">{{goalCount}}</text>
+        <text class="stat-lab">进行中的目标</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能导航卡片 -->
+  <view class="func-grid fade-in">
+    <navigator url="/pages/today/today" class="func-card" hover-class="none">
+      <text class="func-ic">🕐</text>
+      <text class="func-name">今日要处理</text>
+      <text class="func-desc">逾期与今天的安排</text>
+    </navigator>
+    <navigator url="/pages/habits/habits" class="func-card" hover-class="none">
+      <text class="func-ic">🐾</text>
+      <text class="func-name">习惯健康</text>
+      <text class="func-desc">打卡 · 30天贴纸</text>
+    </navigator>
+    <navigator url="/pages/finance/finance" class="func-card" hover-class="none">
+      <text class="func-ic">💰</text>
+      <text class="func-name">财务记账</text>
+      <text class="func-desc">收支 · 预算</text>
+    </navigator>
+    <navigator url="/pages/goals/goals" class="func-card" hover-class="none">
+      <text class="func-ic">🎯</text>
+      <text class="func-name">目标管理</text>
+      <text class="func-desc">里程碑追踪</text>
+    </navigator>
+    <navigator url="/pages/daily/daily" class="func-card" hover-class="none">
+      <text class="func-ic">💡</text>
+      <text class="func-name">一日总结</text>
+      <text class="func-desc">完成·感恩·明日</text>
+    </navigator>
+    <view class="func-card">
+      <text class="func-ic">🏋️</text>
+      <text class="func-name">减脂健身</text>
+      <text class="func-desc">体重记录</text>
+    </view>
+    <view class="func-card">
+      <text class="func-ic">📅</text>
+      <text class="func-name">日程统筹</text>
+      <text class="func-desc">日历事件</text>
+    </view>
+    <view class="func-card">
+      <text class="func-ic">🛒</text>
+      <text class="func-name">待买清单</text>
+      <text class="func-desc">购物勾选</text>
+    </view>
+  </view>
+
+  <!-- 便利填写 -->
+  <view class="card fade-in">
+    <view class="card-title">
+      <text>💬</text>
+      <text>便利填写</text>
+      <text style="margin-left:auto;font-size:22rpx;color:#8a8074">{{today}}</text>
+    </view>
+    <textarea class="textarea-box" placeholder="随手记一句：待办、灵感、购物项…（按日期留存）" value="{{quickNote}}" bindinput="onQnInput"></textarea>
+    <view class="tag-row">
+      <view class="tag" bindtap="qnAppend" data-pre="✅ 待办：">✅ 待办</view>
+      <view class="tag" bindtap="qnAppend" data-pre="💡 灵感：">💡 灵感</view>
+      <view class="tag" bindtap="qnAppend" data-pre="🛒 买：">🛒 购物</view>
+      <view class="tag" bindtap="saveQn">保存</view>
+    </view>
+  </view>
+
+  <!-- 一日总结 -->
+  <view class="card fade-in">
+    <view class="card-title">
+      <text>💡</text>
+      <text>一日总结</text>
+    </view>
+    <text style="font-size:22rpx;color:#8a8074;margin-bottom:16rpx;display:block">每天三段小总结，次日自动归档历史</text>
+    <view class="tri-grid">
+      <view class="tri-col">
+        <text class="tri-label">✅ 今日完成</text>
+        <textarea class="textarea-box" style="min-height:120rpx" placeholder="今天搞定的事…" value="{{dailyDone}}" bindinput="onDailyDone"></textarea>
+      </view>
+      <view class="tri-col">
+        <text class="tri-label">🌻 今日感恩</text>
+        <textarea class="textarea-box" style="min-height:120rpx" placeholder="值得感谢的人/事…" value="{{dailyGrate}}" bindinput="onDailyGrate"></textarea>
+      </view>
+      <view class="tri-col">
+        <text class="tri-label">⏭ 明日打算</text>
+        <textarea class="textarea-box" style="min-height:120rpx" placeholder="明天想做的…" value="{{dailyNext}}" bindinput="onDailyNext"></textarea>
+      </view>
+    </view>
+    <view style="display:flex;gap:12rpx;margin-top:16rpx;flex-wrap:wrap">
+      <button class="btn btn-primary" bindtap="saveDaily" size="mini">保存今日总结</button>
+      <button class="btn btn-ai" bindtap="aiSummary" size="mini">✨ AI 智能总结</button>
+    </view>
+
+    <!-- AI 总结结果 -->
+    <view class="ai-box" wx:if="{{aiText}}" style="animation:fadeIn .35s both">
+      <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8rpx">
+        <text class="ai-badge">🤖 AI 根据今日填写自动归纳</text>
+        <button class="btn btn-small" bindtap="copyAi" size="mini">复制</button>
+      </view>
+      <text class="ai-text">{{aiText}}</text>
+    </view>
+  </view>
+</view>
