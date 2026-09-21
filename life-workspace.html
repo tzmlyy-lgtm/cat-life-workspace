@@ -33,7 +33,12 @@
   --paper:var(--paper-l);
   --paper2:var(--paper2-l);
 }
-[data-theme="dark"]{
+/* ⚠️ 必须写成 html[data-theme="dark"]：下面的 [data-palette="..."] 与裸的
+   [data-theme="dark"] 特异性相同(0,1,0)，且写在后面，会把 dark 的
+   --bg/--bg2/--side/--m1..--m7 覆盖回浅色，导致「卡片变暗但页面底色仍是浅色」的半暗现象。
+   加 html 前缀升到 (0,1,1)，只压过调色板浅色规则，仍低于
+   [data-palette="x"][data-theme="dark"] (0,2,0)，调色板的暗色 accent 照常生效。 */
+html[data-theme="dark"]{
   --bg:#21232a; --bg2:#1b1d23; --side:#262932; --panel:#2b2e38;
   --text:#ECEAE4; --muted:#8b8678; --line:#3a3d47;
   --accent:#6E8FC0; --accent-deep:#9DBFE6;
