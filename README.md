@@ -6,10 +6,15 @@
 
 数据全部存在你自己的浏览器里，不上传、不联网也照常用
 
+### 🔗 [tzmlyy-lgtm.github.io/cat-life-workspace](https://tzmlyy-lgtm.github.io/cat-life-workspace/)
+
+手机上打开后可「添加到主屏幕」，像 App 一样全屏使用、离线可用
+
 ![HTML5](https://img.shields.io/badge/HTML5-单文件-E34F26?logo=html5&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?logo=javascript&logoColor=black)
 ![PWA](https://img.shields.io/badge/PWA-可安装到主屏-5A0FC8?logo=pwa&logoColor=white)
 ![dependencies](https://img.shields.io/badge/依赖-0-brightgreen)
+![GitHub Pages](https://img.shields.io/github/deployments/tzmlyy-lgtm/cat-life-workspace/github-pages?label=Pages&logo=github)
 ![repo size](https://img.shields.io/github/repo-size/tzmlyy-lgtm/cat-life-workspace)
 ![last commit](https://img.shields.io/github/last-commit/tzmlyy-lgtm/cat-life-workspace)
 
@@ -194,12 +199,24 @@ cd deploy-site && python -m http.server 8080
 
 ## 部署
 
-推送到 `main` 后由 GitHub Actions 自动把 `deploy-site/` 发布到 GitHub Pages：
+线上地址：**https://tzmlyy-lgtm.github.io/cat-life-workspace/**（已启用 HTTPS）
+
+推送到 `main` 后由 GitHub Actions 自动发布，无需任何手工操作：
 
 - 工作流：`.github/workflows/deploy-pages.yml`
+- 触发条件：`life-workspace.html` 或 `deploy-site/**` 有改动时
 - 其中包含一步 `cp life-workspace.html deploy-site/index.html`，保证线上内容永远与主文件一致，不会忘记同步
+- 任何静态托管都能用同一份产物（`deploy-site/` 目录）
 
-任何静态托管都能用同一份产物（`deploy-site/` 目录）。
+工作流链路：`checkout → 同步主文件 → configure-pages → 上传 artifact → deploy-pages`，全程约 2 分钟。
+
+### 换自定义域名
+
+如果需要绑定自己的域名（如 `example.com`）：
+
+1. 在域名服务商添加 CNAME 记录指向 `tzmlyy-lgtm.github.io`
+2. 在 `deploy-site/` 下新建 `CNAME` 文件，内容只写域名（如 `example.com`）
+3. 仓库 Settings → Pages → Custom domain 填入域名并保存，勾选 Enforce HTTPS（证书约几分钟自动签发）
 
 ## 回归测试
 
