@@ -3,7 +3,7 @@
         图标等静态资源走「缓存优先」保证离线可用。
    跨域请求（新闻接口）不拦截，交给浏览器按正常流程处理。 */
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = 'cat-shell-' + VERSION;   /* 页面外壳 */
 const ASSETS = 'cat-assets-' + VERSION; /* 图标等静态资源 */
 

@@ -1,10 +1,18 @@
 """生成应用图标（PWA / iOS / favicon）
 用法：python tools/make-icons.py
-设计：项目吉祥物「戴礼帽的奶油猫」+ 群青渐变底 + 对角线柔光 + 底部压暗
-光影一律用线性渐变（不用 radial），否则半径覆盖不到画布角落时会出现圆弧边界。
+
+设计：项目吉祥物「戴礼帽的奶油猫」（厚涂水粉）+ 群青渐变底
+      + 对角线柔光 + 斜向笔刷扫痕 + 纸纹颗粒 + 底部压暗
+
+两个不变式（改动时请勿破坏）：
+1. 光影一律用**线性渐变**，不用 radial —— radial 的半径覆盖不到画布对角时，
+   衰减边界会落在画布内，出现可见的圆弧。
+2. 生成后必须过 **maskable 安全区自检**：Android 会用圆形/方形遮罩裁切边缘，
+   主体四角需落在中央 80% 圆内。
 """
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageChops
 import os
+import random
 import shutil
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,9 +22,10 @@ S = 512
 # 与项目默认配色一致：accent #3B6CB7 / accent-deep #2E548F
 BG_TOP = (0x55, 0x86, 0xCD)
 BG_BOT = (0x1C, 0x37, 0x63)
-CAT_SRC = 'cat-images-transparent/hero.png'
-CAT_H = 0.62      # 吉祥物高度占画布比例（maskable 安全区：内容需落在中央 80% 圆内）
+CAT_SRC = 'cat-images/hero.webp'   # 吉祥物（透明底）
+CAT_H = 0.64      # 吉祥物高度占画布比例（受安全区约束）
 CAT_CY = 0.51     # 吉祥物中心所在高度比例
+GRAIN = 0.13      # 纸纹颗粒强度（0-1）
 
 
 def vgrad(size, c1, c2):
@@ -56,16 +65,50 @@ def bottom_shade(size, strength, start=0.55):
     return lay.resize(size, Image.LANCZOS)
 
 
+def brush_sweeps(size, strength=30, bands=10, seed=7):
+    """斜向笔刷扫痕：几条宽窄不一的柔和亮带，模拟大笔扫过纸面"""
+    N = 256
+    rnd = random.Random(seed)
+    spec = sorted((rnd.uniform(0.05, 0.95),
+                   rnd.uniform(0.010, 0.040),
+                   rnd.uniform(0.35, 1.0)) for _ in range(bands))
+    lay = Image.new('L', (N, N), 0)
+    px = lay.load()
+    for y in range(N):
+        for x in range(N):
+            t = (x * 0.82 + y * 0.57) / N          # 斜向坐标
+            v = 0.0
+            for c, w, k in spec:
+                v = max(v, max(0.0, 1.0 - abs(t - c) / w) * k)
+            px[x, y] = int(min(255, v * strength))
+    return lay.resize(size, Image.LANCZOS)
+
+
+def paper_grain(size, sigma=24):
+    """纸纹颗粒：高斯噪点，让底不再像数字平涂"""
+    return Image.effect_noise(size, sigma)
+
+
 def build():
-    base = vgrad((S, S), BG_TOP, BG_BOT).convert('RGBA')
+    rgb = vgrad((S, S), BG_TOP, BG_BOT)
+
+    # 纸纹颗粒（先铺底，让后续光影都带一点纸感）
+    rgb = Image.blend(rgb, ImageChops.overlay(rgb, paper_grain((S, S)).convert('RGB')), GRAIN)
+
+    # 斜向笔刷扫痕：一亮一暗，制造颜料堆叠的厚薄感
+    base = rgb.convert('RGBA')
+    base = Image.composite(Image.new('RGBA', (S, S), (255, 255, 255, 255)), base,
+                           brush_sweeps((S, S), 18))  # 亮扫痕
+    base = Image.composite(Image.new('RGBA', (S, S), (10, 22, 46, 255)), base,
+                           brush_sweeps((S, S), 13, bands=7, seed=23))  # 暗扫痕
 
     # 对角线柔光 + 底部压暗（都是线性渐变，边缘不带圆弧）
     base = Image.composite(Image.new('RGBA', (S, S), (255, 255, 255, 255)), base,
-                           diag_light((S, S), 58))
+                           diag_light((S, S), 64))
     base = Image.composite(Image.new('RGBA', (S, S), (8, 18, 38, 255)), base,
-                           bottom_shade((S, S), 76))
+                           bottom_shade((S, S), 82))
 
-    # 吉祥物：按 alpha 裁边 → 缩放到画布高度的 62%
+    # 吉祥物：按 alpha 裁边 → 缩放到画布高度的 CAT_H
     cat = Image.open(CAT_SRC).convert('RGBA')
     bb = cat.getchannel('A').getbbox()
     if bb:
@@ -79,10 +122,10 @@ def build():
     # 猫下方的柔和投影，让它「站」在底上
     sh = Image.new('L', (S, S), 0)
     d = ImageDraw.Draw(sh)
-    rx, ry = cat.width * 0.40, S * 0.030
-    scx, scy = S // 2, cy + cat.height - int(S * 0.010)
-    d.ellipse([scx - rx, scy - ry, scx + rx, scy + ry], fill=125)
-    sh = sh.filter(ImageFilter.GaussianBlur(S * 0.030))
+    rx, ry = cat.width * 0.42, S * 0.032
+    scx, scy = S // 2, cy + cat.height - int(S * 0.012)
+    d.ellipse([scx - rx, scy - ry, scx + rx, scy + ry], fill=120)
+    sh = sh.filter(ImageFilter.GaussianBlur(S * 0.032))
     base = Image.composite(Image.new('RGBA', (S, S), (8, 18, 38, 255)), base, sh)
 
     base.alpha_composite(cat, (cx, cy))
