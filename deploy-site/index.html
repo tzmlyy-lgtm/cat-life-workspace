@@ -441,6 +441,50 @@ const daysAgo=i=>{const d=new Date();d.setDate(d.getDate()-i);return ymd(d);};
 const shiftDate=i=>daysAgo(-i);
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad2=n=>String(n).padStart(2,'0');
+/* 解析生日日期：支持 2000-09-20 / 05-20 / 9月20日 等；返回 {y?,mo,da} 或 null（带月/日范围校验，非法返回 null） */
+function parseDate(s){
+  if(!s)return null;
+  const m=s.match(/(\d{4})[-年.\/](\d{1,2})[-月.\/](\d{1,2})/)
+       || s.match(/(\d{1,2})月(\d{1,2})[日号]?/)
+       || s.match(/(\d{1,2})[-月.\/](\d{1,2})/);
+  if(!m)return null;
+  let y,mo,da;
+  if(m[3]!=null){y=+m[1];mo=+m[2];da=+m[3];}
+  else{mo=+m[1];da=+m[2];}
+  if(mo<1||mo>12||da<1||da>31)return null;
+  return y!=null?{y,mo,da}:{mo,da};
+}
+/* 距下次该日生的天数（今天生日=0；已过则算明年）。按「日期」比较，避免当天被时间部分判为已过 */
+function daysTo(bd){
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let next=new Date(today.getFullYear(),bd.mo-1,bd.da);
+  if(next<today)next=new Date(today.getFullYear()+1,bd.mo-1,bd.da);
+  return Math.round((next-today)/86400000);
+}
+/* 生日输入实时格式化：把数字串规范为 MM-DD 或 YYYY-MM-DD（智能拆分月/日，优先合法月份 01-12；中文「月/日」写法交给 blur 统一处理） */
+function autoFormatBday(raw){
+  const d=(raw||'').replace(/\D/g,'');
+  if(!d)return '';
+  if(d.length>=4 && /^(19|20)\d{2}/.test(d)){         // 年份形式 20000920 → 2000-09-20（仅 19xx/20xx 视作年）
+    const y=d.slice(0,4),r=d.slice(4);
+    if(r.length===0)return y;
+    if(r.length<=2)return y+'-'+r;
+    return y+'-'+r.slice(0,2)+'-'+r.slice(2,4);
+  }
+  let mo,da;
+  if(d.length>=2){const m2=+d.slice(0,2);if(m2>=1&&m2<=12){mo=d.slice(0,2);da=d.slice(2);}else{mo=d.slice(0,1);da=d.slice(1);}}
+  else{mo=d;da='';}
+  return da?mo+'-'+da:mo;
+}
+/* 旧版「名字+日期」文本 → 结构化好友条目 */
+function normalizeFriend(it){
+  const bd=parseDate(it.text||'');
+  let name=(it.text||'').replace(/(\d{4})[-年.\/](\d{1,2})[-月.\/](\d{1,2})/,'').replace(/(\d{1,2})月(\d{1,2})[日号]?/,'').replace(/(\d{1,2})[-月.\/](\d{1,2})/,'').replace(/\s+/g,' ').trim();
+  const bday=bd?(bd.y?`${bd.y}-${pad2(bd.mo)}-${pad2(bd.da)}`:`${pad2(bd.mo)}-${pad2(bd.da)}`):'';
+  return {id:it.id||uid(),name:name||'好友',bday,likes:'',date:it.date||todayStr()};
+}
 function showBanner(m){const b=$('#banner');b.textContent=m;b.classList.add('show');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('show'),1800);}
 
 /* ===== 音频 / 振动提醒 ===== */
@@ -502,7 +546,7 @@ function openFullClock(){
 }
 
 /* ===== 数据层（按账户命名空间，旧数据自动迁移） ===== */
-const KEYS=['schedule','habits','finance','goal','media','mood','birthday','shopping','wish','idea','english','diet','news','health','budget','pomo'];
+const KEYS=['schedule','habits','finance','goal','media','mood','friends','shopping','wish','idea','english','diet','news','health','budget','pomo'];
 /* 以「对象」而非「数组」持久化的键——必须单独归一化，否则 JSON.stringify 会丢掉自定义属性 */
 const OBJ_KEYS=['health','budget'];
 const ACTIVE_KEY='cw_active';
@@ -534,6 +578,21 @@ function loadAll(){
   /* 历史遗留：health 曾被当作数组写入，属性会丢失，这里补齐结构 */
   if(!DATA.health.exercise||!Array.isArray(DATA.health.exercise))DATA.health.exercise=[];
   if(!DATA.health.records||!Array.isArray(DATA.health.records))DATA.health.records=[];
+  /* 迁移：好友生日(birthday)独立为「好友(friends)」模块（旧数据为「名字+日期」文本）。
+     原数据归档进 archived_birthday 永不删除，确保更新功能时原始输入内容不丢失 */
+  try{
+    const oldKey=pfx()+'birthday',archKey=pfx()+'archived_birthday';
+    const old=localStorage.getItem(oldKey);
+    if(old){const arr=JSON.parse(old);if(Array.isArray(arr)&&arr.length){DATA.friends=(DATA.friends||[]).concat(arr.map(normalizeFriend));save('friends');}localStorage.setItem(archKey,old);localStorage.removeItem(oldKey);}
+  }catch(e){}
+  /* 统一规范：把已存储好友的生日字段全部规整为 MM-DD / YYYY-MM-DD（不丢内容，只规整格式） */
+  try{
+    if(Array.isArray(DATA.friends)&&DATA.friends.length){
+      let changed=false;
+      DATA.friends.forEach(it=>{if(it&&it.bday){const c=(()=>{const bd=parseDate(it.bday);return bd?(bd.y?`${bd.y}-${pad2(bd.mo)}-${pad2(bd.da)}`:`${pad2(bd.mo)}-${pad2(bd.da)}`):it.bday;})();if(c!==it.bday){it.bday=c;changed=true;}}});
+      if(changed)save('friends');
+    }
+  }catch(e){}
 }
 function save(k){
   const def=OBJ_KEYS.indexOf(k)>=0?{}:[];
@@ -613,10 +672,11 @@ const MODULES=[
   {id:'news',name:'热点新闻',icon:'📰',color:'var(--c1)',sub:'每日时政要闻 · 实时更新'},
   {id:'books',name:'书影音',icon:'📚',color:'var(--c6,#A88BB0)',sub:'书 / 影 / 乐 · 状态 · 评分 · 影评'},
   {id:'finance',name:'理财存钱',icon:'💰',color:'var(--c3)',sub:'收支流水 · 预算 · 存钱目标'},
-  {id:'treehole',name:'我的树洞',icon:'🕳️',color:'var(--c5)',sub:'心愿 · 目标 · 生日 · 待买 · 碎碎念'},
+  {id:'friends',name:'好友',icon:'🎂',color:'var(--c5)',sub:'生日倒数 · 喜好备忘'},
+  {id:'treehole',name:'我的树洞',icon:'🕳️',color:'var(--c5)',sub:'心愿 · 目标 · 待买 · 碎碎念'},
 ];
 const DEFAULT_ORDER=MODULES.map(m=>m.id);
-const NAV_ICONS={home:'🏠',inspire:'💡',english:'🗣️',diet:'🥗',fitness:'🏃',news:'📰',books:'📚',finance:'💰',treehole:'🕳️'};
+const NAV_ICONS={home:'🏠',inspire:'💡',english:'🗣️',diet:'🥗',fitness:'🏃',news:'📰',books:'📚',finance:'💰',friends:'🎂',treehole:'🕳️'};
 
 function loadNavOrder(){try{const v=JSON.parse(localStorage.getItem('cw_navorder'));if(Array.isArray(v)&&v.length===DEFAULT_ORDER.length)return v;}catch(e){}return DEFAULT_ORDER.slice();}
 function saveNavOrder(a){localStorage.setItem('cw_navorder',JSON.stringify(a));}
@@ -687,7 +747,7 @@ function openPalette(){
 
 /* ===== 切换模块 ===== */
 let curTab='home';
-const RENDER={home:renderHome,inspire:renderInspire,english:renderEnglish,diet:renderDiet,fitness:renderFitness,news:renderNews,books:renderBooks,finance:renderFinance,treehole:renderTreehole};
+const RENDER={home:renderHome,inspire:renderInspire,english:renderEnglish,diet:renderDiet,fitness:renderFitness,news:renderNews,books:renderBooks,finance:renderFinance,friends:renderFriends,treehole:renderTreehole};
 function switchTab(id){
   curTab=id;const m=MODULES.find(x=>x.id===id);
   $('#modTitle').textContent=m.name;$('#modSub').textContent=m.sub;
@@ -1371,7 +1431,7 @@ function renderFinance(){
     <input type="number" id="famt" placeholder="金额" style="max-width:120px"><input type="text" id="fnote" placeholder="备注">
     <button class="btn primary" id="addF">记一笔</button></div>
     <ul class="list" id="fList"></ul></div>`;
-  const render=()=>{const box=$('#fList');if(!arr.length){box.innerHTML='<div class="empty-hint">还没有记账记录</div>';return;}box.innerHTML=arr.slice(0,20).map(f=>`<li><div><div>${esc(f.note||(f.type==='income'?'收入':'支出'))}</div><div class="meta">${esc(f.date||'')}</div></div><span>${f.type==='income'?'+':'-'}¥${Math.round(f.amount||0)} <span class="del" data-id="${f.id}">×</span></span></li>`).join('');box.querySelectorAll('.del').forEach(x=>x.onclick=()=>{DATA.finance=DATA.finance.filter(f=>f.id!==x.dataset.id);save('finance');renderFinance();});};
+  const render=()=>{const arr=DATA.finance||[];const box=$('#fList');if(!arr.length){box.innerHTML='<div class="empty-hint">还没有记账记录</div>';return;}box.innerHTML=arr.slice(0,20).map(f=>`<li><div><div>${esc(f.note||(f.type==='income'?'收入':'支出'))}</div><div class="meta">${esc(f.date||'')}</div></div><span>${f.type==='income'?'+':'-'}¥${Math.round(f.amount||0)} <span class="del" data-id="${f.id}">×</span></span></li>`).join('');box.querySelectorAll('.del').forEach(x=>x.onclick=()=>{DATA.finance=DATA.finance.filter(f=>f.id!==x.dataset.id);save('finance');render();});};
   $('#addF').onclick=()=>{const a=+$('#famt').value;if(!a)return;DATA.finance=DATA.finance||[];DATA.finance.unshift({id:uid(),type:$('#ftype').value,amount:a,note:$('#fnote').value,date:todayStr()});save('finance');$('#famt').value='';$('#fnote').value='';renderFinance();};
   $('#budSave').onclick=()=>{DATA.budget=DATA.budget||{};DATA.budget.total=+$('#budTot').value||0;save('budget');showBanner('已保存预算');renderFinance();};
   render();
@@ -1379,11 +1439,10 @@ function renderFinance(){
 function renderTreehole(){
   const c=$('#content');
   c.innerHTML=`
-  <div class="mod-head"><div class="mi" style="background:color-mix(in srgb,var(--c5) 16%,transparent);color:var(--c5)">🕳️</div><div><h2>我的树洞</h2><p>心愿 · 目标 · 生日 · 待买 · 碎碎念</p></div></div>
+  <div class="mod-head"><div class="mi" style="background:color-mix(in srgb,var(--c5) 16%,transparent);color:var(--c5)">🕳️</div><div><h2>我的树洞</h2><p>心愿 · 目标 · 待买 · 碎碎念</p></div></div>
   <div class="tabs" id="thTabs">
     <div class="tab active" data-t="wish">🌟 心愿梦想</div>
     <div class="tab" data-t="goal">🎯 目标管理</div>
-    <div class="tab" data-t="birthday">🎂 好友生日</div>
     <div class="tab" data-t="shopping">🛒 待买清单</div>
     <div class="tab" data-t="mood">📝 碎碎念</div>
   </div>
@@ -1391,45 +1450,97 @@ function renderTreehole(){
   const TABS={
     wish:{key:'wish',ph:'一个小心愿…',hint:'树洞里还没有心愿，许一个吧 🌟'},
     goal:{key:'goal',ph:'一个目标…',hint:'还没有目标，定一个方向 🎯'},
-    birthday:{key:'birthday',ph:'好友名 + 生日，如：小明 05-20 或 小明 2000-09-20',hint:'记录好友生日，自动倒数 🎂',birthday:true},
     shopping:{key:'shopping',ph:'想买的东西…',hint:'待买清单空空 🛒'},
     mood:{key:'mood',ph:'',hint:'',mood:true},
   };
-  const parseDate=s=>{const m=s.match(/(\d{4})[-年.\/](\d{1,2})[-月.\/](\d{1,2})/)||s.match(/(\d{1,2})[-月.\/](\d{1,2})/);if(!m)return null;if(m[3]!=null)return {y:+m[1],mo:+m[2],da:+m[3]};return {mo:+m[1],da:+m[2]};};
-  const daysTo=bd=>{const now=new Date();const y=now.getFullYear();let next=new Date(y,bd.mo-1,bd.da);if(next<now)next=new Date(y+1,bd.mo-1,bd.da);return Math.ceil((next-now)/86400000);};
-  const draw=t=>{const cfg=TABS[t];const arr=DATA[cfg.key]||[];const box=$('#thBody');
+  const draw=t=>{const cfg=TABS[t];const box=$('#thBody');
     if(cfg.mood){drawMood(box);return;}
-    if(cfg.birthday){
-      box.innerHTML=`<div class="add-row"><input type="text" id="thIn" placeholder="${cfg.ph}"><button class="btn primary" id="thAdd">添加</button></div><div class="muted" style="margin-bottom:8px">💡 输入"名字 + 日期"会自动识别生日并计算倒数（支持 05-20 / 2000-09-20 / 9月20日 等格式）。</div><ul class="list" id="thList"></ul>`;
-      const rb=()=>{const l=$('#thList');if(!arr.length){l.innerHTML=`<div class="empty-hint">${cfg.hint}</div>`;return;}
-        l.innerHTML=arr.map(it=>{const bd=parseDate(it.text);let cd='',md='';if(bd){const d=daysTo(bd);cd=`<span class="tag" style="background:var(--m4);color:var(--c4)">${d===0?'今天生日 🎉':('还有 '+d+' 天')}</span>`;md='生日 '+String(bd.mo).padStart(2,'0')+'-'+String(bd.da).padStart(2,'0');}
-          return `<li><div><div>${esc(it.text)}</div><div class="meta">${esc(md)}</div></div><div class="row">${cd}<span class="del" data-id="${it.id}">删除</span></div></li>`;}).join('');
-        l.querySelectorAll('.del').forEach(b=>b.onclick=()=>{DATA.birthday=DATA.birthday.filter(x=>x.id!==b.dataset.id);save('birthday');draw('birthday');});
+    if(t==='goal'){
+      box.innerHTML=`<div class="add-row"><input type="text" id="thIn" placeholder="${cfg.ph}"><button class="btn primary" id="thAdd">添加</button></div><ul class="list" id="thList"></ul>`;
+      const rb=()=>{const arr=DATA.goal||[];const l=$('#thList');if(!arr.length){l.innerHTML=`<div class="empty-hint">${cfg.hint}</div>`;return;}
+        l.innerHTML=arr.map(g=>{const ms=g.milestones||[];const done=ms.filter(m=>m.done).length;const prog=ms.length?Math.round(done/ms.length*100):0;
+          return `<li><div style="width:100%"><div style="display:flex;justify-content:space-between;align-items:center"><div><b>${esc(g.text)}</b>${ms.length?` <span class="muted" style="font-size:12px">(${done}/${ms.length})</span>`:''}</div><span class="del" data-id="${g.id}">删除</span></div>${ms.length?`<div style="height:6px;background:var(--line);border-radius:4px;margin:6px 0;overflow:hidden"><div style="height:100%;width:${prog}%;background:var(--c2)"></div></div>`:''}${ms.map((m,i)=>`<div class="mini-li" style="padding:3px 0"><span class="link" data-g="${g.id}" data-mi="${i}" style="${m.done?'text-decoration:line-through;color:var(--muted)':''}">${m.done?'☑':'☐'} ${esc(m.text)}</span></div>`).join('')}<div class="row" style="margin-top:4px"><input type="text" id="ms_${g.id}" placeholder="添加里程碑…" style="flex:1;min-width:120px"><button class="btn" data-gadd="${g.id}">+里程碑</button></div></div></li>`;}).join('');
+        l.querySelectorAll('.del').forEach(b=>b.onclick=()=>{if(!confirm('删除该目标及其里程碑？'))return;DATA.goal=DATA.goal.filter(x=>x.id!==b.dataset.id);save('goal');rb();});
+        l.querySelectorAll('[data-g][data-mi]').forEach(s=>s.onclick=()=>{const g=DATA.goal.find(x=>x.id===s.dataset.g);if(!g)return;g.milestones=g.milestones||[];g.milestones[+s.dataset.mi].done=!g.milestones[+s.dataset.mi].done;save('goal');rb();});
+        l.querySelectorAll('[data-gadd]').forEach(b=>b.onclick=()=>{const inp=$('#ms_'+b.dataset.gadd);const v=inp.value.trim();if(!v)return;const g=DATA.goal.find(x=>x.id===b.dataset.gadd);if(!g)return;g.milestones=g.milestones||[];g.milestones.push({text:v,done:false});save('goal');rb();});
       };
-      $('#thAdd').onclick=()=>{const v=$('#thIn').value.trim();if(!v)return;if(!parseDate(v)){showBanner('未识别到日期，请如：小明 05-20');return;}DATA.birthday=DATA.birthday||[];DATA.birthday.unshift({id:uid(),text:v,date:todayStr()});save('birthday');$('#thIn').value='';rb();};
+      $('#thAdd').onclick=()=>{const v=$('#thIn').value.trim();if(!v)return;DATA.goal=DATA.goal||[];DATA.goal.unshift({id:uid(),text:v,date:todayStr(),milestones:[]});save('goal');$('#thIn').value='';rb();};
       rb();
     } else {
-      if(t==='goal'){
-        box.innerHTML=`<div class="add-row"><input type="text" id="thIn" placeholder="${cfg.ph}"><button class="btn primary" id="thAdd">添加</button></div><ul class="list" id="thList"></ul>`;
-        const rb=()=>{const l=$('#thList');if(!arr.length){l.innerHTML=`<div class="empty-hint">${cfg.hint}</div>`;return;}
-          l.innerHTML=arr.map(g=>{const ms=g.milestones||[];const done=ms.filter(m=>m.done).length;const prog=ms.length?Math.round(done/ms.length*100):0;
-            return `<li><div style="width:100%"><div style="display:flex;justify-content:space-between;align-items:center"><div><b>${esc(g.text)}</b>${ms.length?` <span class="muted" style="font-size:12px">(${done}/${ms.length})</span>`:''}</div><span class="del" data-id="${g.id}">删除</span></div>${ms.length?`<div style="height:6px;background:var(--line);border-radius:4px;margin:6px 0;overflow:hidden"><div style="height:100%;width:${prog}%;background:var(--c2)"></div></div>`:''}${ms.map((m,i)=>`<div class="mini-li" style="padding:3px 0"><span class="link" data-g="${g.id}" data-mi="${i}" style="${m.done?'text-decoration:line-through;color:var(--muted)':''}">${m.done?'☑':'☐'} ${esc(m.text)}</span></div>`).join('')}<div class="row" style="margin-top:4px"><input type="text" id="ms_${g.id}" placeholder="添加里程碑…" style="flex:1;min-width:120px"><button class="btn" data-gadd="${g.id}">+里程碑</button></div></div></li>`;}).join('');
-          l.querySelectorAll('.del').forEach(b=>b.onclick=()=>{if(!confirm('删除该目标及其里程碑？'))return;DATA.goal=DATA.goal.filter(x=>x.id!==b.dataset.id);save('goal');draw('goal');});
-          l.querySelectorAll('[data-g][data-mi]').forEach(s=>s.onclick=()=>{const g=DATA.goal.find(x=>x.id===s.dataset.g);if(!g)return;g.milestones=g.milestones||[];g.milestones[+s.dataset.mi].done=!g.milestones[+s.dataset.mi].done;save('goal');draw('goal');});
-          l.querySelectorAll('[data-gadd]').forEach(b=>b.onclick=()=>{const inp=$('#ms_'+b.dataset.gadd);const v=inp.value.trim();if(!v)return;const g=DATA.goal.find(x=>x.id===b.dataset.gadd);if(!g)return;g.milestones=g.milestones||[];g.milestones.push({text:v,done:false});save('goal');draw('goal');});
-        };
-        $('#thAdd').onclick=()=>{const v=$('#thIn').value.trim();if(!v)return;DATA.goal=DATA.goal||[];DATA.goal.unshift({id:uid(),text:v,date:todayStr(),milestones:[]});save('goal');$('#thIn').value='';rb();};
-        rb();
-      } else {
-        box.innerHTML=`<div class="add-row"><input type="text" id="thIn" placeholder="${cfg.ph}"><button class="btn primary" id="thAdd">添加</button></div><ul class="list" id="thList"></ul>`;
-        const rb=()=>{const l=$('#thList');if(!arr.length){l.innerHTML=`<div class="empty-hint">${cfg.hint}</div>`;return;}l.innerHTML=arr.map(it=>`<li><div><div>${esc(it.text)}</div><div class="meta">${esc(it.date||'')}</div></div><span class="del" data-id="${it.id}">删除</span></li>`).join('');l.querySelectorAll('.del').forEach(b=>b.onclick=()=>{DATA[cfg.key]=DATA[cfg.key].filter(x=>x.id!==b.dataset.id);save(cfg.key);draw(t);});};
-        $('#thAdd').onclick=()=>{const v=$('#thIn').value.trim();if(!v)return;DATA[cfg.key]=DATA[cfg.key]||[];DATA[cfg.key].unshift({id:uid(),text:v,date:todayStr()});save(cfg.key);$('#thIn').value='';rb();};
-        rb();
-      }
+      box.innerHTML=`<div class="add-row"><input type="text" id="thIn" placeholder="${cfg.ph}"><button class="btn primary" id="thAdd">添加</button></div><ul class="list" id="thList"></ul>`;
+      const rb=()=>{const arr=DATA[cfg.key]||[];const l=$('#thList');if(!arr.length){l.innerHTML=`<div class="empty-hint">${cfg.hint}</div>`;return;}l.innerHTML=arr.map(it=>`<li><div><div>${esc(it.text)}</div><div class="meta">${esc(it.date||'')}</div></div><span class="del" data-id="${it.id}">删除</span></li>`).join('');l.querySelectorAll('.del').forEach(b=>b.onclick=()=>{DATA[cfg.key]=DATA[cfg.key].filter(x=>x.id!==b.dataset.id);save(cfg.key);rb();});};
+      $('#thAdd').onclick=()=>{const v=$('#thIn').value.trim();if(!v)return;DATA[cfg.key]=DATA[cfg.key]||[];DATA[cfg.key].unshift({id:uid(),text:v,date:todayStr()});save(cfg.key);$('#thIn').value='';rb();};
+      rb();
     }
   };
   $$('#thTabs .tab').forEach(tab=>tab.onclick=()=>{$$('#thTabs .tab').forEach(x=>x.classList.remove('active'));tab.classList.add('active');draw(tab.dataset.t);});
   draw('wish');
+}
+
+/* ===== 好友（由树洞的「好友生日」独立而来，并新增喜好记录） ===== */
+function renderFriends(){
+  const c=$('#content');
+  const arr=()=>DATA.friends||[];
+  c.innerHTML=`
+  <div class="mod-head"><div class="mi" style="background:color-mix(in srgb,var(--c5) 16%,transparent);color:var(--c5)">🎂</div><div><h2>好友</h2><p>生日倒数 · 喜好备忘</p></div></div>
+  <div class="card">
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <input id="frName" placeholder="好友名（可空）" style="flex:1;min-width:90px">
+      <input id="frDate" placeholder="生日 05-20 / 2000-09-20 / 9月20日" style="flex:1;min-width:140px">
+      <button class="btn primary" id="frAdd">添加好友</button>
+    </div>
+    <div class="muted" style="margin-top:6px">💡 也可只填一个框写「名字 + 生日」（如：小明 05-20），会自动拆分；每位好友可单独记录喜好 / 礼物灵感。</div>
+  </div>
+  <ul class="list" id="frList"></ul>`;
+  const render=()=>{
+    const list=arr();const box=$('#frList');
+    if(!list.length){box.innerHTML='<div class="empty-hint">还没有好友，添加一位吧 🎂</div>';return;}
+    const sorted=list.slice().sort((a,b)=>{const da=parseDate(a.bday),db=parseDate(b.bday);if(!da)return 1;if(!db)return -1;return daysTo(da)-daysTo(db);});
+    box.innerHTML=sorted.map(it=>{
+      const bd=parseDate(it.bday);let cd='';
+      if(bd){const d=daysTo(bd);cd=`<span class="tag" style="background:var(--m4);color:var(--c4)">${d===0?'今天生日 🎉':('还有 '+d+' 天')}</span>`;}
+      const md=bd?('生日 '+it.bday):'未设生日';
+      return `<li style="flex-direction:column;align-items:stretch;gap:6px">
+        <div class="row" style="justify-content:space-between">
+          <div><b>${esc(it.name||'好友')}</b>&nbsp;${cd}</div>
+          <span class="del" data-id="${it.id}">删除</span>
+        </div>
+        <div class="meta">${esc(md)}</div>
+        <div class="row" style="gap:6px">
+          <input id="frLikes_${it.id}" class="input" style="flex:1;min-width:120px" placeholder="喜好 / 礼物灵感…" value="${esc(it.likes||'')}">
+          <button class="btn" data-like="${it.id}">保存喜好</button>
+        </div>
+      </li>`;
+    }).join('');
+    box.querySelectorAll('.del').forEach(b=>b.onclick=()=>{if(!confirm('删除该好友？'))return;DATA.friends=DATA.friends.filter(x=>x.id!==b.dataset.id);save('friends');render();});
+    box.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>{const it=DATA.friends.find(x=>x.id===b.dataset.like);if(!it)return;it.likes=$('#frLikes_'+b.dataset.like).value.trim();save('friends');showBanner('已保存喜好 ✓');render();});
+  };
+  const fmtCanon=v=>{const bd=parseDate(v);return bd?(bd.y?`${bd.y}-${pad2(bd.mo)}-${pad2(bd.da)}`:`${pad2(bd.mo)}-${pad2(bd.da)}`):'';};
+  /* 实时格式化：仅当输入为纯数字/分隔符时自动补 0、插分隔；含名字或中文「月/日」写法交给 blur / 添加逻辑处理 */
+  $('#frDate').addEventListener('input',e=>{
+    const v=e.target.value;
+    if(!/^[\d\-/. ]+$/.test(v))return;
+    const f=autoFormatBday(v);
+    if(f!==v){e.target.value=f;const n=f.length;try{e.target.setSelectionRange(n,n);}catch(_){}}
+  });
+  /* 失焦时统一规范为 MM-DD / YYYY-MM-DD（如 5-20 → 05-20，9月20日 → 09-20） */
+  $('#frDate').addEventListener('blur',e=>{
+    const c=fmtCanon(e.target.value);
+    if(c)e.target.value=c;
+  });
+  $('#frAdd').onclick=()=>{
+    let name=$('#frName').value.trim();
+    let bday=$('#frDate').value.trim();
+    if(/^[\d\-/. ]+$/.test(bday))bday=autoFormatBday(bday);   // 纯数字串先规整（520 → 05-20），含名字/中文日期则保留
+    if(!name){const pm=bday.match(/^(.*?)[\s,，]+(\d.*)$/);if(pm){name=pm[1].trim();bday=pm[2].trim();if(/^[\d\-/. ]+$/.test(bday))bday=autoFormatBday(bday);}}
+    const bd=parseDate(bday);
+    if(!bd){showBanner('未识别到生日日期，请如：05-20 / 2000-09-20 / 9月20日');return;}
+    const canon=bd.y?`${bd.y}-${pad2(bd.mo)}-${pad2(bd.da)}`:`${pad2(bd.mo)}-${pad2(bd.da)}`;
+    DATA.friends=DATA.friends||[];
+    DATA.friends.unshift({id:uid(),name:name||'好友',bday:canon,likes:'',date:todayStr()});
+    save('friends');$('#frName').value='';$('#frDate').value='';render();
+  };
+  render();
 }
 
 /* ===== 碎碎念（已并入「我的树洞」作为一个标签页） ===== */

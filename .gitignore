@@ -17,3 +17,11 @@ desktop.ini
 *.log
 *~$*
 deploy-site/_*
+# 无头截图 / 测试脚手架（本机临时产物，勿入库）
+._*
+tools/_gen_*.py
+.tmp_*.js
+._shot_*.html
+._friends_*.html
+._friends_*.png
+._edgeprof*/
