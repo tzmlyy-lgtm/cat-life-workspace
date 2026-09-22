@@ -1592,8 +1592,8 @@ function openAccount(){
     const list=ov.querySelector('#acctList');
     list.innerHTML=acts.length?acts.map(a=>`<div class="ov-acct ${a.id===cur?'current':''}"><span>${esc(a.name)}${a.pwd?' 🔒':''}</span>${a.id===cur?'<span class="muted">当前</span>':`<button class="btn" data-sw="${a.id}">切换</button>`}</div>`).join(''):'<div class="empty-hint">暂无其他账户</div>';
     list.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>switchAccount(b.dataset.sw));
-    ov.querySelector('#newAcct').onclick=()=>{const nm=ov.querySelector('#newName').value.trim();if(!nm){showBanner('请填写账户名');return;}const pw=ov.querySelector('#newPwd').value;const acts2=getAccounts();if(acts2.some(a=>a.name===nm)){showBanner('账户名已存在');return;}const id='a'+uid();const rec={id,name:nm,pwd:pw?hashPwd(pw):''};acts2.push(rec);saveAccounts(acts2);setActive(rec);loadAll();renderSidebar();render();showBanner('已创建并切换到 '+nm);};
-    ov.querySelector('#savePwd').onclick=()=>{const pw=ov.querySelector('#setPwd').value;const a=getAccounts().find(x=>x.id===ACCOUNT.id);if(!a)return;a.pwd=pw?hashPwd(pw):'';saveAccounts(getAccounts().map(x=>x.id===a.id?a:x));ACCOUNT.pwd=a.pwd;setActive(ACCOUNT);render();showBanner(pw?'已设置密码🔒':'已取消密码');};
+    ov.querySelector('#newAcct').onclick=()=>{const nm=ov.querySelector('#newName').value.trim();if(!nm){showBanner('请填写账户名');return;}const pw=ov.querySelector('#newPwd').value;const acts2=getAccounts();if(acts2.some(a=>a.name===nm)){showBanner('账户名已存在');return;}const id='a'+uid();const rec={id,name:nm,pwd:pw?hashPwd(pw):''};acts2.push(rec);saveAccounts(acts2);setActive(rec);loadAll();renderSidebar();switchTab(curTab);showBanner('已创建并切换到 '+nm);};
+    ov.querySelector('#savePwd').onclick=()=>{const pw=ov.querySelector('#setPwd').value;const a=getAccounts().find(x=>x.id===ACCOUNT.id);if(!a)return;a.pwd=pw?hashPwd(pw):'';saveAccounts(getAccounts().map(x=>x.id===a.id?a:x));ACCOUNT.pwd=a.pwd;setActive(ACCOUNT);switchTab(curTab);showBanner(pw?'已设置密码🔒':'已取消密码');};
     ov.querySelector('#expBtn').onclick=exportBackup;
     ov.querySelector('#impBtn').onclick=()=>ov.querySelector('#impFile').click();
     ov.querySelector('#impFile').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{importBackup(JSON.parse(rd.result));}catch(err){showBanner('文件格式错误');}e.target.value='';};rd.readAsText(f);};
@@ -1633,7 +1633,7 @@ function showLock(){
 function closeLock(){const ov=document.getElementById('lockMask');if(ov)ov.classList.remove('show');}
 
 /* ===== 启动 ===== */
-migrateDefault();loadActive();ensureCurrentAcct();
+migrateDefault();loadActive();ensureCurrentAcct();loadAll();
 applyTheme(localStorage.getItem('cw_theme')||'light');
 applyPalette(localStorage.getItem('cw_palette')||'azure');
 renderSidebar();
