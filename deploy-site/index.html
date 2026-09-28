@@ -221,6 +221,7 @@ ul.list li{background:var(--panel);border:1px solid var(--line);border-radius:12
 ul.list li:hover{border-color:color-mix(in srgb,var(--accent) 28%,var(--line));box-shadow:0 3px 12px rgba(60,60,60,.06)}
 ul.list li .meta{font-size:11px;color:var(--muted)}
 ul.list li .del{cursor:pointer;color:var(--c4);font-size:12px;padding:4px 8px;border-radius:8px}
+ul.list li .del:hover{background:var(--m4)}
 ul.list li .del:active{background:var(--m4)}
 .empty-hint{color:var(--muted);font-size:13px;text-align:center;padding:20px;border:1px dashed var(--line);border-radius:12px}
 .placeholder-note{background:var(--m3);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:13px;color:var(--c3);margin-bottom:14px}
@@ -459,19 +460,6 @@ a.nt:hover{color:var(--accent);text-decoration:underline}
 .kpi-l{font-size:12px;color:var(--muted);margin-top:2px}
 .mood-emoji.on{background:color-mix(in srgb,var(--accent) 18%,transparent);border-color:var(--accent)}
 .mood-tag.on{background:color-mix(in srgb,var(--accent) 18%,transparent);border-color:var(--accent);color:var(--accent)}
-.cmd-mask{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:350;display:none;align-items:flex-start;justify-content:center;padding:11vh 16px 16px}
-.cmd-mask.show{display:flex}
-.cmd-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;width:100%;max-width:580px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
-.cmd-in{width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:15px 16px;font-size:15px;color:var(--text)}
-.cmd-in:focus{outline:none}
-.cmd-list{max-height:52vh;overflow:auto;padding:6px}
-.cmd-it{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;cursor:pointer;font-size:13.5px}
-.cmd-it:hover,.cmd-it.on{background:var(--m1)}
-.cmd-it .ci{flex:0 0 20px;text-align:center}
-.cmd-it .ct{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cmd-it .cm{font-size:11px;color:var(--muted);flex:0 0 auto;max-width:36%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cmd-foot{padding:8px 14px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
-.cmd-empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
@@ -543,6 +531,8 @@ function daysTo(bd){
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   let next=new Date(today.getFullYear(),bd.mo-1,bd.da);
   if(next<today)next=new Date(today.getFullYear()+1,bd.mo-1,bd.da);
+  /* 2月29日生日在平年会被滚到3月1日，回退到2月28日 */
+  if(bd.mo===2&&bd.da===29&&next.getDate()!==29)next=new Date(next.getFullYear(),1,28);
   return Math.round((next-today)/86400000);
 }
 /* 生日输入实时格式化：把数字串规范为 MM-DD 或 YYYY-MM-DD（智能拆分月/日，优先合法月份 01-12；中文「月/日」写法交给 blur 统一处理） */
@@ -1387,7 +1377,7 @@ function listModule(cfg){
     const box=$('#listBox');
     if(!arr.length){box.innerHTML=`<div class="empty-hint">${cfg.emptyHint||'还没有内容，添加第一条吧～'}</div>`;return;}
     box.innerHTML=arr.map(it=>`<li><div><div>${esc(it.text)}</div><div class="meta">${esc(it.date||'')}${it.tag?' · '+esc(it.tag):''}</div></div><span class="del" data-id="${it.id}">删除</span></li>`).join('');
-    box.querySelectorAll('.del').forEach(b=>b.onclick=()=>{DATA[cfg.key]=(DATA[cfg.key]||[]).filter(x=>x.id!==b.dataset.id);save(cfg.key);render();});
+    box.querySelectorAll('.del').forEach(b=>b.onclick=()=>{if(!confirm('删除后不可恢复，确定删除这条记录？'))return;DATA[cfg.key]=(DATA[cfg.key]||[]).filter(x=>x.id!==b.dataset.id);save(cfg.key);render();});
   };
   const add=()=>{const v=$('#addIn').value.trim();if(!v)return;DATA[cfg.key]=DATA[cfg.key]||[];DATA[cfg.key].unshift({id:uid(),text:v,date:todayStr()});save(cfg.key);$('#addIn').value='';render();};
   $('#addBtn').onclick=add;$('#addIn').onkeydown=e=>{if(e.key==='Enter')add();};
@@ -1519,10 +1509,11 @@ function renderNews(){
   if(!cache||Date.now()-(cache.at||0)>20*60*1000)refresh(true);
   $('#newsRefresh').onclick=()=>refresh(false);
   /* 自动刷新（30 分钟一轮，仅在停留于本模块时生效） */
-  let auto=true;
+  let auto=(localStorage.getItem(pfx()+'newsAuto')??'1')!=='0';   /* 开关状态持久化，进出模块不再重置 */
   const clearAuto=()=>{if(window._newsTimer){clearInterval(window._newsTimer);window._newsTimer=null;}};
   const armAuto=()=>{clearAuto();if(auto)window._newsTimer=setInterval(()=>{if(curTab==='news')refresh(true);else clearAuto();},30*60*1000);};
-  $('#newsAuto').onclick=()=>{auto=!auto;$('#newsAuto').textContent='⏱ 自动刷新：'+(auto?'开':'关');armAuto();showBanner(auto?'已开启每30分钟自动刷新':'已关闭自动刷新');};
+  $('#newsAuto').onclick=()=>{auto=!auto;localStorage.setItem(pfx()+'newsAuto',auto?'1':'0');$('#newsAuto').textContent='⏱ 自动刷新：'+(auto?'开':'关');armAuto();showBanner(auto?'已开启每30分钟自动刷新':'已关闭自动刷新');};
+  $('#newsAuto').textContent='⏱ 自动刷新：'+(auto?'开':'关');
   armAuto();
   /* 切回标签页/跨过零点时补一次刷新（只绑定一次，避免反复进出新闻模块累积监听器） */
   if(!window._newsVisBound){window._newsVisBound=true;
@@ -1686,8 +1677,7 @@ function renderFitness(){
     });
     box.querySelectorAll('[data-hd]').forEach(b=>b.onclick=()=>{
       if(!confirm('删除该习惯及其记录？'))return;
-      DATA.habits=habitArr().filter(x=>x.id!==b.dataset.hd);save('habits');renderHabits();
-    });
+      DATA.habits=habitArr().filter(x=>x.id!==b.dataset.hd);save('habits');renderHabits();    });
   };
   $('#hMode').onchange=()=>{$('#hUnitWrap').style.display=$('#hMode').value==='count'?'inline-flex':'none';};
   $('#btnAddHabit').onclick=()=>{
@@ -1861,7 +1851,7 @@ function renderTreehole(){
       rb();
     } else {
       box.innerHTML=`<div class="add-row"><input type="text" id="thIn" placeholder="${cfg.ph}"><button class="btn primary" id="thAdd">添加</button></div><ul class="list" id="thList"></ul>`;
-      const rb=()=>{const arr=DATA[cfg.key]||[];const l=$('#thList');if(!arr.length){l.innerHTML=`<div class="empty-hint">${cfg.hint}</div>`;return;}l.innerHTML=arr.map(it=>`<li><div><div>${esc(it.text)}</div><div class="meta">${esc(it.date||'')}</div></div><span class="del" data-id="${it.id}">删除</span></li>`).join('');l.querySelectorAll('.del').forEach(b=>b.onclick=()=>{DATA[cfg.key]=DATA[cfg.key].filter(x=>x.id!==b.dataset.id);save(cfg.key);rb();});};
+      const rb=()=>{const arr=DATA[cfg.key]||[];const l=$('#thList');if(!arr.length){l.innerHTML=`<div class="empty-hint">${cfg.hint}</div>`;return;}l.innerHTML=arr.map(it=>`<li><div><div>${esc(it.text)}</div><div class="meta">${esc(it.date||'')}</div></div><span class="del" data-id="${it.id}">删除</span></li>`).join('');l.querySelectorAll('.del').forEach(b=>b.onclick=()=>{if(!confirm('删除后不可恢复，确定删除？'))return;DATA[cfg.key]=DATA[cfg.key].filter(x=>x.id!==b.dataset.id);save(cfg.key);rb();});};
       $('#thAdd').onclick=()=>{const v=$('#thIn').value.trim();if(!v)return;DATA[cfg.key]=DATA[cfg.key]||[];DATA[cfg.key].unshift({id:uid(),text:v,date:todayStr()});save(cfg.key);$('#thIn').value='';rb();};
       rb();
     }
@@ -1956,7 +1946,7 @@ function renderFriends(){
 
 /* ===== 碎碎念（已并入「我的树洞」作为一个标签页） ===== */
 function compressImage(file,cb){
-  const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const max=900;let w=img.width,h=img.height;if(w>max||h>max){const s=Math.min(max/w,max/h);w=Math.round(w*s);h=Math.round(h*s);}const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);try{cb(cv.toDataURL('image/jpeg',0.7));}catch(e){cb(r.result);}};img.src=r.result;};r.readAsDataURL(file);
+  const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const max=900;let w=img.width,h=img.height;if(w>max||h>max){const s=Math.min(max/w,max/h);w=Math.round(w*s);h=Math.round(h*s);}const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);try{cb(cv.toDataURL('image/jpeg',0.7));}catch(e){cb(r.result);}};img.onerror=()=>cb(r.result);img.src=r.result;};r.readAsDataURL(file);
 }
 function drawMood(box){
   const arr=(DATA.mood||[]);
@@ -2047,7 +2037,7 @@ function renderMood(){
       ${(m.tags&&m.tags.length)?`<div style="margin-top:4px">${m.tags.map(t=>`<span class="tag" style="font-size:11px;background:var(--m5);color:var(--text)">${esc(t)}</span>`).join(' ')}</div>`:''}
       ${m.note?`<div class="muted" style="font-size:13px;white-space:pre-wrap;margin-top:4px">${esc(m.note)}</div>`:''}
     </div>`;}).join('');
-    box.querySelectorAll('.del').forEach(x=>x.onclick=()=>{DATA.moodlog=DATA.moodlog.filter(mm=>mm.id!==x.dataset.id);save('moodlog');drawMoodStats();renderList();});
+    box.querySelectorAll('.del').forEach(x=>x.onclick=()=>{if(!confirm('删除这条心情记录？'))return;DATA.moodlog=DATA.moodlog.filter(mm=>mm.id!==x.dataset.id);save('moodlog');drawMoodStats();renderList();});
   };
   drawMoodStats();renderList();
 }
