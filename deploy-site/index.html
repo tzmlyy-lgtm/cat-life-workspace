@@ -863,6 +863,26 @@ const NEWS_DB=[
 ];
 
 /* ===== 模块注册 ===== */
+/* 情绪打卡专属图标：奶油猫头 + 深蓝礼帽 + 淡粉渐变底（与应用 Logo 同风格，内联 SVG 零依赖，1em 随容器缩放） */
+const MOOD_ICON_SVG='<svg viewBox="0 0 64 64" width="1em" height="1em" role="img" aria-label="情绪打卡">'
+  +'<defs><linearGradient id="moodIcoBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE6EF"/><stop offset="1" stop-color="#F2C2D9"/></linearGradient></defs>'
+  +'<circle cx="32" cy="32" r="30" fill="url(#moodIcoBg)"/>'
+  +'<path d="M13.5 34 L18 17 L28.5 25.5 Z" fill="#F3E3C9" stroke="#D9B98F" stroke-width="1.5" stroke-linejoin="round"/>'
+  +'<path d="M50.5 34 L46 17 L35.5 25.5 Z" fill="#F3E3C9" stroke="#D9B98F" stroke-width="1.5" stroke-linejoin="round"/>'
+  +'<path d="M17.5 29.5 L20 20.5 L25.5 25.8 Z" fill="#F2B8C6"/>'
+  +'<path d="M46.5 29.5 L44 20.5 L38.5 25.8 Z" fill="#F2B8C6"/>'
+  +'<ellipse cx="32" cy="40" rx="19" ry="16" fill="#F6EAD4" stroke="#D9B98F" stroke-width="1.5"/>'
+  +'<circle cx="21.5" cy="43.5" r="2.6" fill="#F6C6D4" opacity=".8"/>'
+  +'<circle cx="42.5" cy="43.5" r="2.6" fill="#F6C6D4" opacity=".8"/>'
+  +'<circle cx="25.5" cy="39.5" r="2.4" fill="#453629"/><circle cx="26.3" cy="38.7" r="0.8" fill="#FFF" opacity=".9"/>'
+  +'<circle cx="38.5" cy="39.5" r="2.4" fill="#453629"/><circle cx="39.3" cy="38.7" r="0.8" fill="#FFF" opacity=".9"/>'
+  +'<path d="M29.8 44.2 H34.2 L32 47.2 Z" fill="#E88AA0"/>'
+  +'<path d="M32 47.2 V48.8 M32 48.8 Q29.8 51.2 28 49.3 M32 48.8 Q34.2 51.2 36 49.3" stroke="#B98A5E" stroke-width="1.4" fill="none" stroke-linecap="round"/>'
+  +'<path d="M11.5 40.5 L20 41.3 M12.5 45.2 L20.5 44.5 M52.5 40.5 L44 41.3 M51.5 45.2 L43.5 44.5" stroke="#C9A97E" stroke-width="1.2" stroke-linecap="round"/>'
+  +'<rect x="24" y="6" width="16" height="11.5" rx="2.2" fill="#2B3A67"/>'
+  +'<rect x="24.6" y="12.8" width="14.8" height="4" fill="#22315C"/>'
+  +'<rect x="19.5" y="16.4" width="25" height="4.6" rx="2.3" fill="#2B3A67"/>'
+  +'</svg>';
 const MODULES=[
   {id:'home',name:'综合首页',icon:'🏠',color:'var(--c1)',sub:'总览 · 快捷工具 · 一日总结'},
   {id:'schedule',name:'日程待办',icon:'📋',color:'var(--c3)',sub:'待办清单 · 日程提醒'},
@@ -876,10 +896,10 @@ const MODULES=[
   {id:'friends',name:'好友',icon:'🎂',color:'var(--c5)',sub:'生日倒数 · 喜好备忘'},
   {id:'treehole',name:'我的树洞',icon:'🕳️',color:'var(--c5)',sub:'心愿 · 目标 · 待买 · 碎碎念'},
   {id:'focus',name:'专注统计',icon:'🍅',color:'var(--c3)',sub:'番茄钟统计 · 时段分布 · 复盘导出'},
-  {id:'mood',name:'情绪打卡',icon:'💗',color:'var(--c4)',sub:'心情记录 · 趋势 · 分布'},
+  {id:'mood',name:'情绪打卡',icon:MOOD_ICON_SVG,color:'var(--c4)',sub:'心情记录 · 趋势 · 分布'},
 ];
 const DEFAULT_ORDER=MODULES.map(m=>m.id);
-const NAV_ICONS={home:'🏠',schedule:'📋',inspire:'💡',english:'🗣️',diet:'🥗',fitness:'🏃',news:'📰',books:'📚',finance:'💰',friends:'🎂',treehole:'🕳️',focus:'🍅',mood:'💗'};
+const NAV_ICONS={home:'🏠',schedule:'📋',inspire:'💡',english:'🗣️',diet:'🥗',fitness:'🏃',news:'📰',books:'📚',finance:'💰',friends:'🎂',treehole:'🕳️',focus:'🍅',mood:MOOD_ICON_SVG};
 
 function loadNavOrder(){
   try{
@@ -1938,7 +1958,7 @@ function renderMood(){
   let chosen=null;
   const todayEntry=()=>(DATA.moodlog||[]).find(m=>m.date===todayStr());
   c.innerHTML=`
-  <div class="mod-head"><div class="mi" style="background:color-mix(in srgb,var(--c4) 16%,transparent);color:var(--c4)">💗</div><div><h2>情绪打卡</h2><p>记录今日心情 · 趋势 · 分布</p></div></div>
+  <div class="mod-head"><div class="mi" style="background:color-mix(in srgb,var(--c4) 16%,transparent);color:var(--c4)">${MOOD_ICON_SVG}</div><div><h2>情绪打卡</h2><p>记录今日心情 · 趋势 · 分布</p></div></div>
   <div class="card">
     <div class="muted" style="font-size:12px;margin-bottom:6px">选择今天的心情（每天一条，可修改）</div>
     <div id="moodEmojis" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
