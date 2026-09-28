@@ -113,6 +113,15 @@ T.MODULES.forEach(m => {
 });
 console.log('modules rendered:', ok + '/' + T.MODULES.length);
 
+// 1b) T3 新功能：今日要事/进度环 + 成就墙 + 年度总结入口
+try {
+  T.SWITCH('home');
+  console.log('MIT ring/list/badges:', !!document.getElementById('mitRing'), !!document.getElementById('mitList'),
+    ((document.getElementById('badgeWall').innerHTML.match(/class="bdg/g) || []).length) + ' badges',
+    'yrBtn:', !!document.getElementById('yrBtn'));
+} catch (e) { console.error('T3 home FAIL:', e.message); }
+
+
 // 2) 番茄钟：改时长 -> 重置 -> 开始 -> 跑满 -> 触发下一阶段
 const pomoStart = document.getElementById('pomoStart');
 const ring = document.getElementById('pomoRing');
