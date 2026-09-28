@@ -159,9 +159,10 @@ console.log('paper layer present:', hasPaper);
 // 5) 模块清单：碎碎念并入树洞 / 月度复盘已移除
 const ids = T.MODULES.map(m => m.id).join(',');
 console.log('module ids:', ids);
-console.log('mood as standalone module removed:', !T.MODULES.some(m => m.id === 'mood'));
+console.log('mood is standalone module now:', T.MODULES.some(m => m.id === 'mood'), '| renderMood:', typeof T.RENDER.mood === 'function');
+console.log('focus module added:', T.MODULES.some(m => m.id === 'focus'), '| renderFocus:', typeof T.RENDER.focus === 'function');
 console.log('treehole sub mentions 碎碎念:', /碎碎念/.test((T.MODULES.find(m => m.id === 'treehole') || {}).sub || ''));
-console.log('RENDER has no renderMood:', !('mood' in T.RENDER), '| renderTreehole:', typeof T.RENDER.treehole);
+console.log('RENDER has renderMood+renderFocus:', ('mood' in T.RENDER) && ('focus' in T.RENDER), '| renderTreehole:', typeof T.RENDER.treehole);
 console.log('月度复盘 removed from source:', !/revSave|revRef|revPlan/.test(codes.join('\n')));
 
 // 6) 书影音：色板为可见色块（非原生下拉）
@@ -245,7 +246,7 @@ try {
   console.log('break phase adds no record:', readPomo().length === after.length);
   // 统计渲染
   const stats = String(document.getElementById('pomoStats').innerHTML || '');
-  const todayN = readPomo().filter(r => r.date === ymd).length;
+  const todayN = readPomo().filter(r => r.date === ymd && r.kind === 'work').length;
   console.log('stats rendered:', stats.length > 0, '| 今日数值正确:', stats.includes('今日 <b>' + todayN + '</b> 个'), '| 有近7天:', stats.includes('近 7 天'));
   // 全屏浮层里的统计行同步
   document.getElementById('pomoFull').onclick();
