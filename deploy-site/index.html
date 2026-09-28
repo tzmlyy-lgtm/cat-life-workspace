@@ -907,8 +907,9 @@ const CAT_MOOD_PARTS={
  '😣':'<path d="M21.5 36.5 L28 39 L21.5 41.5 M42.5 36.5 L36 39 L42.5 41.5" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 45.8 q2.5-2.2 5 0 q2.5 2.2 5 0" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M48.5 31 q2.5 4 0 6 q-2.5-2 0-6" fill="#7FB3E0"/>',
  '😠':'<path d="M21 33 L29 36.2 M43 33 L35 36.2" stroke="#453629" stroke-width="2" stroke-linecap="round"/><circle cx="25.5" cy="39.5" r="2.2" fill="#453629"/><circle cx="38.5" cy="39.5" r="2.2" fill="#453629"/><path d="M27.5 47 Q32 44 36.5 47" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M46.5 25.5 l5.5 5.5 M52 25.5 l-5.5 5.5" stroke="#D05555" stroke-width="1.8" stroke-linecap="round"/>'
 };
-const catMoodFace=e=>CAT_MOOD_PARTS[e]
-  ?'<svg viewBox="0 0 64 64" width="1em" height="1em" role="img" aria-label="'+e+'">'+CAT_MOOD_BG+CAT_MOOD_BASE+CAT_MOOD_PARTS[e]+'</svg>'
+const MOOD_FACE_IMG={'😄':'mood-e-happy','🔥':'mood-e-full','🙂':'mood-e-calm','😐':'mood-e-neutral','😴':'mood-e-tired','😔':'mood-e-sad','😣':'mood-e-anxious','😠':'mood-e-angry'};
+const catMoodFace=e=>MOOD_FACE_IMG[e]
+  ?'<img src="cat-images/'+MOOD_FACE_IMG[e]+'.webp?v=1" alt="'+e+'" title="'+e+'" style="width:1em;height:1em;border-radius:.28em;object-fit:cover;display:inline-block;vertical-align:-.15em">'
   :esc(e);
 const MODULES=[
   {id:'home',name:'综合首页',icon:'🏠',color:'var(--c1)',sub:'总览 · 快捷工具 · 一日总结'},
@@ -926,7 +927,8 @@ const MODULES=[
   {id:'mood',name:'情绪打卡',icon:MOOD_ICON_SVG,color:'var(--c4)',sub:'心情记录 · 趋势 · 分布'},
 ];
 const DEFAULT_ORDER=MODULES.map(m=>m.id);
-const NAV_ICONS={home:'🏠',schedule:'📋',inspire:'💡',english:'🗣️',diet:'🥗',fitness:'🏃',news:'📰',books:'📚',finance:'💰',friends:'🎂',treehole:'🕳️',focus:'🍅',mood:MOOD_ICON_SVG};
+const MOOD_ICON_IMG='<img src="cat-images/mood-icon.webp?v=1" alt="情绪打卡" style="width:1em;height:1em;border-radius:.32em;object-fit:cover;display:inline-block;vertical-align:-.12em">';
+const NAV_ICONS={home:'🏠',schedule:'📋',inspire:'💡',english:'🗣️',diet:'🥗',fitness:'🏃',news:'📰',books:'📚',finance:'💰',friends:'🎂',treehole:'🕳️',focus:'🍅',mood:MOOD_ICON_IMG};
 
 function loadNavOrder(){
   try{
@@ -1985,7 +1987,7 @@ function renderMood(){
   let chosen=null;
   const todayEntry=()=>(DATA.moodlog||[]).find(m=>m.date===todayStr());
   c.innerHTML=`
-  <div class="mod-head"><div class="mi" style="background:color-mix(in srgb,var(--c4) 16%,transparent);color:var(--c4)">${MOOD_ICON_SVG}</div><div><h2>情绪打卡</h2><p>记录今日心情 · 趋势 · 分布</p></div></div>
+  <div class="mod-head"><div class="mi" style="padding:0;overflow:hidden"><img src="cat-images/mood-icon.webp?v=1" alt="情绪打卡" style="width:46px;height:46px;border-radius:14px;object-fit:cover;display:block"></div><div><h2>情绪打卡</h2><p>记录今日心情 · 趋势 · 分布</p></div></div>
   <div class="card">
     <div class="muted" style="font-size:12px;margin-bottom:6px">选择今天的心情（每天一条，可修改）</div>
     <div id="moodEmojis" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
