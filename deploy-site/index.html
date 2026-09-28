@@ -883,6 +883,33 @@ const MOOD_ICON_SVG='<svg viewBox="0 0 64 64" width="1em" height="1em" role="img
   +'<rect x="24.6" y="12.8" width="14.8" height="4" fill="#22315C"/>'
   +'<rect x="19.5" y="16.4" width="25" height="4.6" rx="2.3" fill="#2B3A67"/>'
   +'</svg>';
+/* 心情选择器：8 种心情的猫猫头表情（Logo 画风；键沿用 MOODS 的 e 值，旧心情记录自动兼容） */
+const CAT_MOOD_BG='<defs><linearGradient id="catFaceBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE6EF"/><stop offset="1" stop-color="#F2C2D9"/></linearGradient></defs>';
+const CAT_MOOD_BASE='<circle cx="32" cy="32" r="30" fill="url(#catFaceBg)"/>'
+  +'<path d="M13.5 34 L18 17 L28.5 25.5 Z" fill="#F3E3C9" stroke="#D9B98F" stroke-width="1.5" stroke-linejoin="round"/>'
+  +'<path d="M50.5 34 L46 17 L35.5 25.5 Z" fill="#F3E3C9" stroke="#D9B98F" stroke-width="1.5" stroke-linejoin="round"/>'
+  +'<path d="M17.5 29.5 L20 20.5 L25.5 25.8 Z" fill="#F2B8C6"/>'
+  +'<path d="M46.5 29.5 L44 20.5 L38.5 25.8 Z" fill="#F2B8C6"/>'
+  +'<ellipse cx="32" cy="40" rx="19" ry="16" fill="#F6EAD4" stroke="#D9B98F" stroke-width="1.5"/>'
+  +'<circle cx="21.5" cy="43.5" r="2.6" fill="#F6C6D4" opacity=".8"/>'
+  +'<circle cx="42.5" cy="43.5" r="2.6" fill="#F6C6D4" opacity=".8"/>'
+  +'<path d="M11.5 40.5 L20 41.3 M12.5 45.2 L20.5 44.5 M52.5 40.5 L44 41.3 M51.5 45.2 L43.5 44.5" stroke="#C9A97E" stroke-width="1.2" stroke-linecap="round"/>'
+  +'<rect x="24" y="6" width="16" height="11.5" rx="2.2" fill="#2B3A67"/>'
+  +'<rect x="24.6" y="12.8" width="14.8" height="4" fill="#22315C"/>'
+  +'<rect x="19.5" y="16.4" width="25" height="4.6" rx="2.3" fill="#2B3A67"/>';
+const CAT_MOOD_PARTS={
+ '😄':'<path d="M21.5 38.5 Q25.5 34.5 29.5 38.5 M34.5 38.5 Q38.5 34.5 42.5 38.5" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M26.5 43.5 Q32 51.5 37.5 43.5 Z" fill="#A85448"/><path d="M29.5 46 Q32 49.5 34.5 46 Z" fill="#E88AA0"/>',
+ '🔥':'<circle cx="25.5" cy="38.5" r="2.3" fill="#453629"/><circle cx="38.5" cy="38.5" r="2.3" fill="#453629"/><path d="M27 43.5 Q32 47.5 37 43.5" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M10.5 13.5 v7 M7 17 h7 M53.5 13.5 v7 M50 17 h7" stroke="#F0B429" stroke-width="1.8" stroke-linecap="round"/>',
+ '🙂':'<circle cx="25.5" cy="38.5" r="2.2" fill="#453629"/><circle cx="38.5" cy="38.5" r="2.2" fill="#453629"/><path d="M27.5 43.5 Q32 46.8 36.5 43.5" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+ '😐':'<circle cx="25.5" cy="38.5" r="2.2" fill="#453629"/><circle cx="38.5" cy="38.5" r="2.2" fill="#453629"/><path d="M27.5 45.2 H36.5" stroke="#453629" stroke-width="1.8" stroke-linecap="round"/>',
+ '😴':'<path d="M21.5 39 Q25.5 41.8 29.5 39 M34.5 39 Q38.5 41.8 42.5 39" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="32" cy="45.8" r="1.8" fill="none" stroke="#453629" stroke-width="1.5"/><path d="M46.5 23.5 h5.5 L46.5 29 h5.5" stroke="#7B8DBF" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+ '😔':'<path d="M21.5 38 Q25.5 41 29.5 38 M34.5 38 Q38.5 41 42.5 38" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M27.5 47 Q32 44 36.5 47" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M45.8 42.5 q2.3 3.8 0 5.8 q-2.3-2 0-5.8" fill="#7FB3E0"/>',
+ '😣':'<path d="M21.5 36.5 L28 39 L21.5 41.5 M42.5 36.5 L36 39 L42.5 41.5" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 45.8 q2.5-2.2 5 0 q2.5 2.2 5 0" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M48.5 31 q2.5 4 0 6 q-2.5-2 0-6" fill="#7FB3E0"/>',
+ '😠':'<path d="M21 33 L29 36.2 M43 33 L35 36.2" stroke="#453629" stroke-width="2" stroke-linecap="round"/><circle cx="25.5" cy="39.5" r="2.2" fill="#453629"/><circle cx="38.5" cy="39.5" r="2.2" fill="#453629"/><path d="M27.5 47 Q32 44 36.5 47" stroke="#453629" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M46.5 25.5 l5.5 5.5 M52 25.5 l-5.5 5.5" stroke="#D05555" stroke-width="1.8" stroke-linecap="round"/>'
+};
+const catMoodFace=e=>CAT_MOOD_PARTS[e]
+  ?'<svg viewBox="0 0 64 64" width="1em" height="1em" role="img" aria-label="'+e+'">'+CAT_MOOD_BG+CAT_MOOD_BASE+CAT_MOOD_PARTS[e]+'</svg>'
+  :esc(e);
 const MODULES=[
   {id:'home',name:'综合首页',icon:'🏠',color:'var(--c1)',sub:'总览 · 快捷工具 · 一日总结'},
   {id:'schedule',name:'日程待办',icon:'📋',color:'var(--c3)',sub:'待办清单 · 日程提醒'},
@@ -1973,7 +2000,7 @@ function renderMood(){
   </div>
   <div id="moodList"></div>`;
   const emWrap=$('#moodEmojis');
-  emWrap.innerHTML=MOODS.map(m=>`<div class="mood-emoji" data-e="${m.e}" title="${m.n}" style="cursor:pointer;font-size:24px;padding:6px 8px;border-radius:10px;border:1px solid var(--line)">${m.e}</div>`).join('');
+  emWrap.innerHTML=MOODS.map(m=>`<div class="mood-emoji" data-e="${m.e}" title="${m.n}" style="cursor:pointer;font-size:24px;padding:6px 8px;border-radius:10px;border:1px solid var(--line)">${catMoodFace(m.e)}</div>`).join('');
   const tagsWrap=$('#moodTags');
   tagsWrap.innerHTML=MOOD_TAGS.map(t=>`<span class="mood-tag" data-t="${t}" style="cursor:pointer;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)">${t}</span>`).join('');
   let selTags=new Set();
@@ -2012,7 +2039,7 @@ function renderMood(){
     if(!arr.length){box.innerHTML='';return;}
     box.innerHTML=arr.slice(0,30).map(m=>{const mo=moodOf(m.emoji);return `<div class="card" style="border-left:4px solid ${MOOD_COLORS[mo.s]||'var(--accent)'}">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><b style="font-size:18px">${m.emoji}</b> <span class="muted" style="font-size:12px">${mo.n} · ${m.date}</span></div>
+        <div><b style="font-size:18px">${catMoodFace(m.emoji)}</b> <span class="muted" style="font-size:12px">${mo.n} · ${m.date}</span></div>
         <span class="del" data-id="${m.id}" style="cursor:pointer;font-size:14px">删除</span>
       </div>
       ${(m.tags&&m.tags.length)?`<div style="margin-top:4px">${m.tags.map(t=>`<span class="tag" style="font-size:11px;background:var(--m5);color:var(--text)">${esc(t)}</span>`).join(' ')}</div>`:''}
