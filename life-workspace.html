@@ -521,6 +521,40 @@ a.nt:hover{color:var(--accent);text-decoration:underline}
 /* confetti */
 .cf-p{position:fixed;top:-16px;border-radius:2px;z-index:900;pointer-events:none;animation:cf-fall var(--d,2s) cubic-bezier(.25,.46,.45,.94) forwards}
 @keyframes cf-fall{to{transform:translate(var(--tx,0),105vh) rotate(var(--rot,540deg));opacity:.85}}
+/* ===== 美化：暗色玻璃拟态（仅暗色主题生效） ===== */
+html[data-theme="dark"] .card,html[data-theme="dark"] .qt,html[data-theme="dark"] .stat,
+html[data-theme="dark"] .sidebar,html[data-theme="dark"] .topbar,html[data-theme="dark"] .habit-row,
+html[data-theme="dark"] .yr-kpi,html[data-theme="dark"] .bdg,html[data-theme="dark"] .mit-it,html[data-theme="dark"] .kpi{
+  background-color:color-mix(in srgb,var(--panel) 74%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:0 6px 26px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.06);
+}
+html[data-theme="dark"] .bnav{background-color:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+/* ===== 美化：骨架屏加载态 ===== */
+.skl{padding:4px 0}
+.skl-b{border-radius:14px;background:linear-gradient(100deg,var(--m4) 30%,var(--m5) 50%,var(--m4) 70%);background-size:200% 100%;animation:skl-move 1.1s linear infinite;margin-bottom:14px}
+@keyframes skl-move{to{background-position:-200% 0}}
+.skl-hero{height:92px}
+.skl-row{height:76px}
+.skl-card{height:220px}
+/* ===== 美化：移动端底部导航 ===== */
+.bnav{display:none}
+.bnav-sheet{display:none}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .bnav{display:flex;position:fixed;left:0;right:0;bottom:0;height:62px;z-index:80;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -6px 22px rgba(0,0,0,.10);align-items:stretch}
+  .bnav-it{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;color:var(--muted);cursor:pointer;border:0;background:transparent;font-family:inherit;padding:0}
+  .bnav-it .bni{font-size:21px;line-height:1.1;filter:grayscale(.25)}
+  .bnav-it.active{color:var(--accent);font-weight:700}
+  .bnav-it.active .bni{filter:none;transform:scale(1.06)}
+  .bnav-sheet{display:none;position:fixed;left:0;right:0;bottom:62px;z-index:79;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(0,0,0,.14);padding:12px;border-radius:18px 18px 0 0;flex-wrap:wrap;gap:8px}
+  .bnav-sheet.show{display:flex}
+  .bnav-sheet .bi{display:flex;flex-direction:column;align-items:center;gap:3px;width:calc(20% - 8px);min-width:60px;padding:9px 2px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-size:10.5px;color:var(--muted);font-family:inherit}
+  .bnav-sheet .bi .bni{font-size:19px}
+  .bnav-sheet .bi:active{background:var(--m1)}
+  .banner{bottom:76px}
+  .main{padding-bottom:70px}
+}
 </style>
 </head>
 <body>
@@ -561,6 +595,8 @@ a.nt:hover{color:var(--accent);text-decoration:underline}
     <div class="content" id="content"></div>
   </main>
 </div>
+<nav class="bnav" id="bnav" aria-label="主导航"></nav>
+<div class="bnav-sheet" id="bnavSheet"></div>
 <div class="banner" id="banner"></div>
 <script>
 /* ===== 工具 ===== */
@@ -790,6 +826,7 @@ function openYearReview(){
       <div class="yr-hd"><h2>📊 年度生活总结</h2>
         <select id="yrYear" class="input" style="width:auto"></select>
         <button class="btn" id="yrCopy">复制年度总结</button>
+        <button class="btn" id="yrShare">🖼 分享图</button>
         <button class="btn yr-close" id="yrClose">✕ 关闭</button></div>
       <div id="yrBody"></div></div>`;
     document.body.appendChild(ov);
@@ -871,7 +908,56 @@ function openYearReview(){
     if(navigator.clipboard)navigator.clipboard.writeText(txt);
     showBanner('年度总结已复制 📋');
   };
+  ov.querySelector('#yrShare').onclick=()=>{
+    const s=ov._summary;if(!s)return;
+    downloadShareImage('year-review-'+s.year+'.png','🐱 '+s.year+' 年度生活总结','喵星驻地球办事处 · 把日子过成喜欢的样子',[
+      {ic:'🍅',n:s.tomatoN,l:'完成番茄'},
+      {ic:'⏱',n:s.tomatoM,l:'专注分钟'},
+      {ic:'💗',n:s.moodDays,l:'心情打卡天'},
+      {ic:'😊',n:s.moodAvg?s.moodAvg.toFixed(1):'--',l:'平均心情分'},
+      {ic:'✅',n:s.hDays,l:'习惯打卡天'},
+      {ic:'📋',n:s.todosDone,l:'完成待办'},
+      {ic:'💰',n:'¥'+Math.round(s.expSum),l:'总支出'},
+      {ic:'📚',n:s.mediaN,l:'书影音记录'}
+    ],s.tops.length?'年度最投入：'+s.tops.slice(0,3).map(t=>t.k).join(' · '):'喵星驻地球办事处 · cat-life-workspace');
+  };
   ov.classList.add('show');
+}
+
+/* ===== 美化：Canvas 统计分享图（品牌粉渐变底 + 白面板 + KPI 网格） ===== */
+function downloadShareImage(fname,title,sub,kpis,foot){
+  try{
+    const W=880,cols=2,pad=36,headH=180,cellH=118,footH=84;
+    const rows=Math.max(1,Math.ceil(kpis.length/cols));
+    const H=headH+rows*cellH+footH+pad*2;
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+    const g=cv.getContext('2d');if(!g){showBanner('当前环境不支持 Canvas');return;}
+    const bg=g.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#FDE6EF');bg.addColorStop(1,'#F2C2D9');
+    g.fillStyle=bg;g.fillRect(0,0,W,H);
+    const R=(x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();};
+    R(pad,pad,W-pad*2,H-pad*2,28);g.fillStyle='rgba(255,255,255,.92)';g.fill();
+    const cx=W/2;
+    g.textAlign='center';
+    g.fillStyle='#2B3A67';g.font='700 40px "PingFang SC","Microsoft YaHei",sans-serif';
+    g.fillText(title,cx,pad+66);
+    g.fillStyle='#8a6d7c';g.font='24px "PingFang SC","Microsoft YaHei",sans-serif';
+    g.fillText(sub,cx,pad+108);
+    const gw=W-pad*2-24,cw=gw/cols;
+    kpis.forEach((k,i)=>{
+      const col=i%cols,row=(i/cols)|0;
+      const x=pad+12+col*cw,y=pad+headH-30+row*cellH;
+      R(x+6,y,cw-12,cellH-16,16);g.fillStyle='#FDF3F7';g.fill();
+      g.fillStyle='#c2557e';g.font='700 44px "PingFang SC","Microsoft YaHei",sans-serif';
+      g.fillText(k.ic+' '+k.n,x+cw/2,y+54);
+      g.fillStyle='#9c8290';g.font='22px "PingFang SC","Microsoft YaHei",sans-serif';
+      g.fillText(k.l,x+cw/2,y+90);
+    });
+    g.fillStyle='#a8899a';g.font='20px "PingFang SC","Microsoft YaHei",sans-serif';
+    g.fillText(foot,cx,H-pad-26);
+    const done=()=>showBanner('分享图已生成，已开始下载 🖼');
+    if(cv.toBlob)cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname;document.body.appendChild(a);a.click();setTimeout(()=>{try{URL.revokeObjectURL(a.href);a.remove();}catch(e){}},3000);done();},'image/png');
+    else{const a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download=fname;document.body.appendChild(a);a.click();a.remove();done();}
+  }catch(e){showBanner('生成分享图失败');}
 }
 
 /* ===== 文件下载 / CSV 拼装 ===== */
@@ -1170,6 +1256,41 @@ function renderSidebar(){
     });
     list.appendChild(b);
   });
+  renderBottomNav();
+}
+
+/* ===== 美化：移动端底部导航（≤768px 时替代侧栏，主入口 4 个 + 更多面板） ===== */
+const BNAV_MAIN=['home','schedule','focus','mood'];
+function renderBottomNav(){
+  const bar=document.getElementById('bnav');if(!bar)return;
+  const order=loadNavOrder();
+  const mains=BNAV_MAIN.filter(id=>MODULES.some(x=>x.id===id));
+  bar.innerHTML=mains.map(id=>{
+    const m=MODULES.find(x=>x.id===id);
+    return `<button class="bnav-it${id===curTab?' active':''}" data-bn="${id}"><span class="bni">${NAV_ICONS[id]||m.icon}</span><span>${m.name.length>3?m.name.slice(0,3):m.name}</span></button>`;
+  }).join('')+'<button class="bnav-it" data-bn="__more"><span class="bni">⋯</span><span>更多</span></button>';
+  bar.querySelectorAll('[data-bn]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.bn;
+    if(id==='__more'){const sh=document.getElementById('bnavSheet');sh.classList.toggle('show');renderBnavSheet();return;}
+    document.getElementById('bnavSheet').classList.remove('show');
+    switchTab(id);
+  });
+}
+function renderBnavSheet(){
+  const sh=document.getElementById('bnavSheet');if(!sh)return;
+  const order=loadNavOrder();
+  const rest=order.filter(id=>!BNAV_MAIN.includes(id)&&MODULES.some(x=>x.id===id));
+  sh.innerHTML=rest.map(id=>{
+    const m=MODULES.find(x=>x.id===id);
+    return `<button class="bi" data-bn="${id}"><span class="bni">${NAV_ICONS[id]||m.icon}</span><span>${m.name}</span></button>`;
+  }).join('')
+  +'<button class="bi" data-act="acct"><span class="bni">👤</span><span>账户</span></button>'
+  +'<button class="bi" data-act="pal"><span class="bni">🎨</span><span>配色</span></button>'
+  +'<button class="bi" data-act="theme"><span class="bni" id="bnThemeIco">🌙</span><span>主题</span></button>';
+  sh.querySelectorAll('[data-bn]').forEach(b=>b.onclick=()=>{sh.classList.remove('show');switchTab(b.dataset.bn);});
+  sh.querySelector('[data-act=acct]').onclick=()=>{sh.classList.remove('show');openAccount();};
+  sh.querySelector('[data-act=pal]').onclick=()=>{sh.classList.remove('show');openPalette();};
+  sh.querySelector('[data-act=theme]').onclick=()=>{applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');const ico=sh.querySelector('#bnThemeIco');if(ico)ico.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'☀️':'🌙';};
 }
 
 /* ===== 主题 ===== */
@@ -1216,7 +1337,15 @@ function switchTab(id){
   curTab=id;const m=MODULES.find(x=>x.id===id);
   $('#modTitle').textContent=m.name;$('#modSub').textContent=m.sub;
   $$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
-  $('#content').innerHTML='';RENDER[id]();
+  renderBottomNav();
+  const c=$('#content');
+  /* 骨架屏过渡：真实浏览器先铺一帧骨架再渲染；测试桩（无 matchMedia）与偏好减弱动效者直接渲染 */
+  const canSkel=typeof matchMedia==='function'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(canSkel){
+    switchTab._pending=id;
+    c.innerHTML='<div class="skl"><div class="skl-b skl-hero"></div><div class="skl-b skl-row"></div><div class="skl-b skl-card"></div><div class="skl-b skl-row"></div></div>';
+    requestAnimationFrame(()=>{if(switchTab._pending===id){switchTab._pending=null;c.innerHTML='';RENDER[id]();}});
+  }else{c.innerHTML='';RENDER[id]();}
   $('#content').scrollTop=0;window.scrollTo(0,0);
 }
 
@@ -2394,7 +2523,7 @@ function renderFocus(){
   <div class="card"><h3>📅 近 8 周专注（分钟）</h3><div id="fWeek"></div></div>
   <div class="card"><h3>📆 近 6 月专注（分钟）</h3><div id="fMonth"></div></div>
   <div class="card"><h3>🎯 任务投入排行</h3><div id="fTasks"></div></div>
-  <div class="card"><h3>📋 专注明细（最近 40 条）</h3><div style="margin-bottom:8px"><button class="btn" id="fCsv">⬇️ 导出 CSV</button></div><ul class="list" id="fDetail"></ul></div>`;
+  <div class="card"><h3>📋 专注明细（最近 40 条）</h3><div style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="fCsv">⬇️ 导出 CSV</button><button class="btn" id="fShare">🖼 生成分享图</button></div><ul class="list" id="fDetail"></ul></div>`;
   const d=todayStr();
   const tWork=work.filter(r=>r.date===d);
   const tMin=tWork.reduce((a,r)=>a+(+r.min||0),0);
@@ -2429,6 +2558,17 @@ function renderFocus(){
   box.innerHTML=recent.length?recent.map(r=>`<li><div><div>${r.kind==='abort'?'⛔ 中断':'🍅 专注'}${r.task?(' · '+esc(r.task)):''}</div><div class="meta">${esc(r.date||'')} ${esc(r.at||'')}</div></div><span>${Math.round(r.min||0)} 分 <span class="del" data-id="${r.id}">×</span></span></li>`).join(''):'<div class="empty-hint">还没有专注记录</div>';
   box.querySelectorAll('.del').forEach(x=>x.onclick=()=>{DATA.pomo=DATA.pomo.filter(mm=>mm.id!==x.dataset.id);save('pomo');renderFocus();});
   $('#fCsv').onclick=()=>{const head=['日期','时间','类型','时长(分)','任务'];const rows=arr.map(r=>[r.date||'',r.at||'',r.kind==='abort'?'中断':'专注',Math.round(r.min||0),r.task||'']);downloadFile('专注记录-'+ACCOUNT.id+'.csv',toCSV(head,rows));};
+  $('#fShare').onclick=()=>{
+    const top=tkTop.slice(0,3).map(t=>t.k).join(' · ');
+    downloadShareImage('focus-share-'+todayStr()+'.png','🐱 我的专注成绩单','累计 '+work.length+' 个番茄 · '+Math.round(aMin)+' 分钟深度投入',[
+      {ic:'🍅',n:tWork.length,l:'今日番茄'},
+      {ic:'⏱',n:Math.round(tMin),l:'今日分钟'},
+      {ic:'🏆',n:work.length,l:'累计番茄'},
+      {ic:'⚡',n:Math.round(aMin),l:'累计分钟'},
+      {ic:'🔥',n:streak,l:'连续天数'},
+      {ic:'🎯',n:abortRate+'%',l:'中断率'}
+    ],tkTop.length?'最投入：'+top:'喵星驻地球办事处 · cat-life-workspace');
+  };
 }
 
 /* ===== 账户 / 备份 / 锁屏 ===== */
