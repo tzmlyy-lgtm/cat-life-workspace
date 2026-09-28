@@ -419,6 +419,10 @@ a.nt:hover{color:var(--accent);text-decoration:underline}
 .hm-c{display:flex;align-items:center;justify-content:center;aspect-ratio:1/1;border-radius:6px;background:var(--line);font-size:10px;color:var(--muted);font-style:normal;opacity:.5}
 .hm-c.on{background:linear-gradient(135deg,var(--c2),color-mix(in srgb,var(--c2) 50%,var(--accent)));color:#fff;opacity:1;font-weight:700}
 .hm-c.today{box-shadow:0 0 0 2px var(--accent)}
+.hm-c.has-ico{position:relative;padding:0;overflow:hidden;background:#FDE6EF;opacity:1}
+.hm-c.has-ico .hm-ico{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.hm-c.has-ico .hm-d{position:absolute;right:2px;bottom:1px;font-size:9px;font-weight:700;font-style:normal;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7),0 0 3px rgba(0,0,0,.55);line-height:1;pointer-events:none}
+html[data-theme="dark"] .hm-c.has-ico{background:#3A2A33}
 
 /* ===== 情绪打卡 ===== */
 .mood-pick{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
@@ -727,9 +731,10 @@ function svgDonut(slices,opt){
   const legend='<div class="chart-lg" style="margin-top:0">'+list.slice(0,8).map(s=>`<span><i style="background:${s.c}"></i>${esc(s.l)} ${Math.round((+s.v||0)/total*100)}%</span>`).join('')+'</div>';
   return `<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:0 0 138px;max-width:42%"><svg viewBox="0 0 140 140" style="width:100%;height:auto;display:block"><g transform="rotate(-90 70 70)">${rings}</g><text x="70" y="68" text-anchor="middle" style="font-size:9px;fill:var(--muted)">合计</text><text x="70" y="84" text-anchor="middle" style="font-size:14px;font-weight:800;fill:var(--text)">${esc(opt.center!=null?opt.center:total)}</text></svg></div><div style="flex:1;min-width:150px">${legend}</div></div>`;
 }
-/* 月历热力图：dateSet 为 Set('YYYY-MM-DD')；opt.date 指定月份（默认当月） */
+/* 月历热力图：dateSet 为 Set('YYYY-MM-DD')；opt.date 指定月份（默认当月）；opt.icons 为 {日期:图片名}，命中时在格内铺满该图案 */
 function heatMonth(dateSet,opt){
   opt=opt||{};
+  const icons=opt.icons||null;
   const base=opt.date?new Date(opt.date+'-01T00:00:00'):new Date();
   const y=base.getFullYear(),mo=base.getMonth();
   const firstDow=new Date(y,mo,1).getDay();
@@ -741,7 +746,9 @@ function heatMonth(dateSet,opt){
     const ds=`${y}-${pad2(mo+1)}-${pad2(d)}`;
     const on=!!(dateSet&&dateSet.has&&dateSet.has(ds));
     if(on)cnt++;
-    cells.push(`<i class="hm-c${on?' on':''}${ds===todayStr()?' today':''}" title="${ds}${on?' · 有记录':''}">${d}</i>`);
+    const ico=icons?icons[ds]:null;
+    const body=ico?`<img class="hm-ico" src="cat-images/${ico}.webp?v=2" alt="" loading="lazy"><em class="hm-d">${d}</em>`:`${d}`;
+    cells.push(`<i class="hm-c${on?' on':''}${ico?' has-ico':''}${ds===todayStr()?' today':''}" title="${ds}${on?' · 有记录':''}">${body}</i>`);
   }
   const wd=['日','一','二','三','四','五','六'].map(w=>`<span class="hm-w">${w}</span>`).join('');
   return `<div class="hm"><div class="hm-hd">${y} 年 ${mo+1} 月　<span style="font-weight:400">有记录 ${cnt} 天</span></div><div class="hm-grid">${wd}${cells.join('')}</div></div>`;
@@ -2489,8 +2496,9 @@ function renderMood(){
     const cnt={};arr.forEach(m=>{cnt[m.emoji]=(cnt[m.emoji]||0)+1;});
     const slices=Object.keys(cnt).map(e=>({l:(moodOf(e).n||e),v:cnt[e],c:MOOD_COLORS[moodOf(e).s]||'var(--accent)'}));
     $('#moodDist').innerHTML=slices.length?svgDonut(slices):'<div class="empty-hint">还没有心情记录</div>';
-    const s=new Set();arr.forEach(m=>{if(m.date)s.add(m.date);});
-    $('#moodHeat').innerHTML=heatMonth(s,{date:moodHmMonth});
+    const s=new Set(),mIcons={};
+    arr.forEach(m=>{if(!m.date)return;s.add(m.date);if(!mIcons[m.date]&&MOOD_FACE_IMG[m.emoji])mIcons[m.date]=MOOD_FACE_IMG[m.emoji];});
+    $('#moodHeat').innerHTML=heatMonth(s,{date:moodHmMonth,icons:mIcons});
   };
   $('#moodHmPrev').onclick=()=>{const p=moodHmMonth.split('-').map(Number);let y=p[0],m=p[1]-1;if(m<1){m=12;y--;}moodHmMonth=`${y}-${pad2(m)}`;drawMoodStats();};
   $('#moodHmNext').onclick=()=>{const p=moodHmMonth.split('-').map(Number);let y=p[0],m=p[1]+1;if(m>12){m=1;y++;}moodHmMonth=`${y}-${pad2(m)}`;drawMoodStats();};

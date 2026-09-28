@@ -334,4 +334,22 @@ try {
   console.log('一日总结含任务归因:', line2.includes('主要投入在'), '|', line2.slice(0, 62));
 } catch (e) { console.error('TASK DIM FAIL:', (e && e.stack) || e); }
 
+// 13) 心情日历：有记录的日期，格内显示对应猫头图标
+try {
+  const _d = new Date();
+  const _ymd = _d.getFullYear() + '-' + String(_d.getMonth() + 1).padStart(2, '0') + '-' + String(_d.getDate()).padStart(2, '0');
+  T.DATA.moodlog = [{ id: 'smoke-mood-1', date: _ymd, emoji: '😠', score: 1, note: '', tags: [] }];
+  T.SWITCH('mood');
+  const heat = String(document.getElementById('moodHeat').innerHTML || '');
+  const icoCnt = (heat.match(/class="hm-ico"/g) || []).length;
+  console.log('心情日历猫头图标:', icoCnt + ' 个',
+    '| 对应表情图:', /mood-e-angry\.webp/.test(heat),
+    '| has-ico 格:', /hm-c[^"]*has-ico/.test(heat),
+    '| 保留日期数字:', /class="hm-d">\d+</.test(heat));
+  // 饮食日历不传 icons，不应出现图标
+  T.SWITCH('diet');
+  const dietHeat = String(document.getElementById('dietHeat').innerHTML || '');
+  console.log('饮食日历不受影响(无图标):', !/hm-ico/.test(dietHeat));
+} catch (e) { console.error('MOOD CAL FAIL:', (e && e.stack) || e); }
+
 console.log('SMOKE_DONE');
